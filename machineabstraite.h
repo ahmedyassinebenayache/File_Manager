@@ -54,3 +54,4 @@ typedef struct BLOC_ch{//pour le mode chainee
 }BLOC_ch;
 
 
+

@@ -276,4 +276,40 @@ void chargerFichier_co(FILE *ms, char fileName[20], int structnum, int internalm
 }
 
 
-   
+
+   // Fonction pour renommer un fichier
+void renameFile(FILE *ms, char *oldName, char *newName) {
+    BLOCMETA BuferrMeta;
+    int found = 0;
+
+    // Positionner le curseur sur les blocs dédiés aux métadonnées
+    fseek(ms, MAX*sizeof(int), SEEK_SET); // Sauter la table d'allocation
+
+    // Parcourir les blocs de métadonnées
+    for (int i = 0; i < BM; i++) {
+        fread(&BuferrMeta, sizeof(BLOCMETA), 1, ms); // Lire un bloc de métadonnées
+
+        // Rechercher le fichier par son nom
+        for (int j = 0; j < BuferrMeta.nf; j++) {
+            if (strcmp(BuferrMeta.V[j].fname, oldName) == 0) {
+                // Fichier trouvé, modifier son nom
+                strcpy(BuferrMeta.V[j].fname, newName);
+                found = 1;
+
+                // Revenir en arrière pour réécrire le bloc mis à jour
+                fseek(ms, -sizeof(BLOCMETA), SEEK_CUR);
+                fwrite(&BuferrMeta, sizeof(BLOCMETA), 1, ms);
+
+                printf("Le fichier '%s' a été renommé en '%s'.\n", oldName, newName);
+                break;
+            }
+        }
+
+        if (found) break; // Arrêter la recherche si le fichier est trouvé
+    }
+
+    if (!found) {
+        printf("Erreur : Le fichier '%s' n'existe pas.\n", oldName);
+    }
+}
+

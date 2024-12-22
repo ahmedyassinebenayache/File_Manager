@@ -278,7 +278,7 @@ void chargerFichier_co(FILE *ms, char fileName[20], int structnum, int internalm
 
 
    // Fonction pour renommer un fichier
-void renameFile(FILE *ms, char *oldName, char *newName) {
+void Renommer_co(FILE *ms, char *oldName, char *newName) {
     BLOCMETA BuferrMeta;
     int found = 0;
 

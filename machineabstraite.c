@@ -14,9 +14,7 @@ void createFile_co(FILE *ms,  char fname[20], int structnum,  int internalmode) 
     BLOCTable BuferrTable;
     BLOCMETA BuferrMeta;
 
-     
-   
-    
+  
     
     fseek(ms, 0, SEEK_SET);
     fread(&BuferrTable,MAX* sizeof(BuferrTable), 1, ms); //  Lire le tableau d'allocation
@@ -49,6 +47,7 @@ if(i<BM){
        }
  
    fileMeta.firstbloc = j;
+   fileMeta.etat=1; //existe
 
  // Écrit les métadonnées du fichier dans le ms fichier
 
@@ -68,8 +67,7 @@ if(i<BM){
             fwrite(&BuferrTable, sizeof(BuferrTable), 1,ms);  
         }
     
-
-
+    
 
     fseek(ms, sizeof(BuferrTable), SEEK_SET);   
     fseek(ms, (i+2)*sizeof(BuferrMeta), SEEK_SET);

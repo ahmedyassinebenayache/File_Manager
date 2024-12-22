@@ -7,6 +7,34 @@
 
 
 
+/** 
+ * Fonction pour rechercher un groupe de blocs libres dans la table d'allocation
+ */
+void Recherche_des_blocs_libres(int *start, BLOCTable BuferrTable, int blocnum) {
+    int freeBlocks = 0;
+    *start = -1;
+    for (int i = BM + 1; i < MAX; i++) {
+        if (BuferrTable.tableAllocation[i] == 0) { // Bloc non utilisé
+            if (freeBlocks == 0) *start = i; // Début de la séquence libre
+            freeBlocks++;
+        } else {
+            freeBlocks = 0; // Réinitialisation si un bloc est utilisé
+        }
+
+        if (freeBlocks == blocnum) break; // Séquence suffisante trouvée
+    }
+
+    if (freeBlocks < blocnum) {
+        *start = -1; // Pas assez de blocs libres
+    }
+}
+
+
+
+
+
+
+
 
 
 void createFile_co(FILE *ms,  char fname[20], int structnum,  int internalmode) {
@@ -38,16 +66,18 @@ if(i<BM){
     for (int i = 0; i < Taill ; i++){
         fileMeta.fname[i]=fname[i];
         }
-    
 
-     int j=BM; //Trouver des  BLOCS_co vides Pour premier bloc
-      while (BuferrTable.tableAllocation[j]==0 && i< MAX )
-      {
-       j++;
-       }
- 
-   fileMeta.firstbloc = j;
-   fileMeta.etat=1; //existe
+    //Trouver des  BLOCS_co vides Pour premier bloc
+    int startBlock;
+        Recherche_des_blocs_libres(&startBlock, BuferrTable, fileMeta.blocnum);
+      if (startBlock == -1) {
+        printf("Erreur : Pas assez d'espace libre pour charger le fichier.\n");
+        return;
+        }
+
+     fileMeta.firstbloc = startBlock;
+
+     fileMeta.etat=1; //existe
 
  // Écrit les métadonnées du fichier dans le ms fichier
 

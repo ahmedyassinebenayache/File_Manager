@@ -7,11 +7,7 @@
 
 
 
-typedef struct BLOCTable{
 
-int  tableAllocation[MAX];
-
-}BLOCTable;
 
 
 typedef struct Meta{

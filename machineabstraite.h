@@ -15,6 +15,7 @@ int  tableAllocation[MAX];
 
 
 typedef struct Meta{
+    int etat; // 0:supprime , 1:existe
     char fname[20];
     int blocnum;
     int structnum;

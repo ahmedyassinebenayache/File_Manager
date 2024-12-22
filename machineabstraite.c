@@ -98,7 +98,7 @@ if(i<BM){
     
 
     fseek(ms, MAX*sizeof(int), SEEK_SET);   
-    fseek(ms, (i+2)*sizeof(BuferrMeta), SEEK_SET);
+    fseek(ms, (i)*sizeof(BuferrMeta), SEEK_SET);
     fwrite(&BuferrMeta, sizeof(BuferrMeta), 1,ms);
 
 printf("Le fichier '%s' a été créé avec succès.\n", fname);

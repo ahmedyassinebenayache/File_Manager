@@ -64,7 +64,7 @@ int allouer (FILE *ms ){
     fread(table,sizeof(int),NbBloc,ms) ;
     for (int i = 0; i < NbBloc; i++)
     {
-        if (table[i]=0) {
+        if (table[i]==0) {
             table[i]=1 , k=i , i=NbBloc+1 ;
         }
     }

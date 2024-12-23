@@ -10,21 +10,21 @@
 /** 
  * Fonction pour rechercher un groupe de blocs libres dans la table d'allocation
  */
-void allouer_co(int *start, int tableAllocation[MAX], int blocnum) {
+void allouer_co(int *start, int tableAllocation[NbBloc], int nbEtudiant) {
     int freeBlocks = 0;
     *start = -1;
-    for (int i = BM + 1; i < MAX; i++) {
+    for (int i = 0; i < NbBloc; i++) {
         if (tableAllocation[i] == 0) { // Bloc non utilisé
-            if (freeBlocks == 0) *start = i; // Début de la séquence libre
+            if (freeBlocks == 0) {*start = i; }// Début de la séquence libre
             freeBlocks++;
         } else {
             freeBlocks = 0; // Réinitialisation si un bloc est utilisé
         }
 
-        if (freeBlocks == blocnum) break; // Séquence suffisante trouvée
+        if (freeBlocks == nbEtudiant) break; // Séquence suffisante trouvée
     }
 
-    if (freeBlocks < blocnum) {
+    if (freeBlocks < nbEtudiant) {
         *start = -1; // Pas assez de blocs libres
     }
 }
@@ -37,13 +37,13 @@ void allouer_co(int *start, int tableAllocation[MAX], int blocnum) {
 /** 
  * Fonction pour trier les élèves par ID (tri à bulles)
  */
-void trierEleves(eleve *Televe, int structnum) {
-    for (int i = 0; i < structnum - 1; i++) {
-        for (int j = 0; j < structnum - i - 1; j++) {
-            if (Televe[j].id > Televe[j + 1].id) {
-                eleve temp = Televe[j];
-                Televe[j] = Televe[j + 1];
-                Televe[j + 1] = temp;
+void trierTetudiants(Tetudiant *tTetudiant, int taille) {
+    for (int i = 0; i < taille - 1; i++) {
+        for (int j = 0; j < taille - i - 1; j++) {
+            if (tTetudiant[j].id > tTetudiant[j + 1].id) {
+                Tetudiant temp = tTetudiant[j];
+                tTetudiant[j] = tTetudiant[j + 1];
+                tTetudiant[j + 1] = temp;
             }
         }
     }
@@ -55,29 +55,29 @@ void trierEleves(eleve *Televe, int structnum) {
 
 
 
- void Charger_les_élèves_non_triée_dans_fichier_de_donnée(FILE *f, char fileName[20], int startBloc, int blocnum, int structnum) {
-    eleve record;
+ void Charger_les_élèves_non_triée_dans_fichier_de_donnée(FILE *f, char fileName[20], int startBloc, int nbEtudiant, int taille) {
+    Tetudiant record;
     BLOC_co Buferr;
     int recordIndex = 0;
 
     rewind(f) ;
-    printf("Entrez les informations des élèves (ID, Nom, Prénom, Section):\n");
-    for (int i = 0; i < blocnum; i++) {
+    printf("Entrez les ineormations des élèves (ID, Nom, Prénom, Section):\n");
+    for (int i = 0; i < nbEtudiant; i++) {
         Buferr.ne = 0;
 
-        for (int j = 0; j < FB && recordIndex < structnum; j++) {
+        for (int j = 0; j < FB && recordIndex < taille; j++) {
             printf("Élève %d:\n", recordIndex + 1);
             record.etat = 1; // Élève existant
             printf("ID: ");
-            scanf("%d", &record.id);
+            scane("%d", &record.id);
             printf("Nom: ");
-            scanf(" %[^\n]", record.nom);
+            scane(" %[^\n]", record.nom);
             printf("Prénom: ");
-            scanf(" %[^\n]", record.Prenom);
+            scane(" %[^\n]", record.prenom);
             printf("Section: ");
-            scanf(" %c", &record.sec);
+            scane(" %c", &record.sec);
 
-            Buferr.T[j] = record;
+            Buferr.t[j] = record;
             Buferr.ne++;
             recordIndex++;
         }
@@ -99,40 +99,40 @@ void trierEleves(eleve *Televe, int structnum) {
 /**
  * Fonction pour charger les élèves en mode trié
  */
-void Charger_les_élèves_triée_dans_fichier_de_donnée(FILE *f, char fileName[20], int startBloc, int blocnum, int structnum) {
-    eleve *Televe = malloc(structnum * sizeof(eleve));
-    if (Televe == NULL) {
+void Charger_les_élèves_triée_dans_fichier_de_donnée(FILE *f, char fileName[20], int startBloc, int nbEtudiant, int taille) {
+    Tetudiant *tTetudiant = malloc(taille * sizeof(Tetudiant));
+    if (tTetudiant == NULL) {
         printf("Erreur : Impossible d'allouer de la mémoire.\n");
         return;
     }
 
-    printf("Entrez les informations des élèves (ID, Nom, Prénom, Section):\n");
-    for (int i = 0; i < structnum; i++) {
-        Televe[i].etat = 1; // Élève existant
+    printf("Entrez les ineormations des élèves (ID, Nom, Prénom, Section):\n");
+    for (int i = 0; i < taille; i++) {
+        tTetudiant[i].etat = 1; // Élève existant
         printf("Élève %d:\n", i + 1);
         printf("ID: ");
-        scanf("%d", &Televe[i].id);
+        scane("%d", &tTetudiant[i].id);
         printf("Nom: ");
-        scanf(" %[^\n]", Televe[i].nom);
+        scane(" %[^\n]", tTetudiant[i].nom);
         printf("Prénom: ");
-        scanf(" %[^\n]", Televe[i].Prenom);
+        scane(" %[^\n]", tTetudiant[i].prenom);
         printf("Section: ");
-        scanf(" %c", &Televe[i].sec);
+        scane(" %c", &tTetudiant[i].sec);
     }
 
-    // Tri des élèves
-    trierEleves(Televe, structnum);
+    // tri des élèves
+    trierTetudiants(tTetudiant, taille);
 
     // Chargement des élèves dans les blocs
     BLOC_co Buferr;
     int recordIndex = 0;
     
     rewind(f) ;
-    for (int i = 0; i < blocnum; i++) {
+    for (int i = 0; i < nbEtudiant; i++) {
         Buferr.ne = 0;
 
-        for (int j = 0; j < FB && recordIndex < structnum; j++) {
-            Buferr.T[j] = Televe[recordIndex++];
+        for (int j = 0; j < FB && recordIndex < taille; j++) {
+            Buferr.t[j] = tTetudiant[recordIndex++];
             Buferr.ne++;
         }
 
@@ -142,7 +142,7 @@ void Charger_les_élèves_triée_dans_fichier_de_donnée(FILE *f, char fileName[
     }
 
     
-    free(Televe);
+    free(tTetudiant);
 }
 
 
@@ -155,80 +155,67 @@ void Charger_les_élèves_triée_dans_fichier_de_donnée(FILE *f, char fileName[
 
 
 
-void createFile_co(FILE *ms, FILE *f, char fname[20], int structnum,  int internalmode) {//0 : non triée,   1  : triée
-    Meta fileMeta;
-    BLOCMETA BuferrMeta;
-     int tableAllocation[MAX];
+void creer_un_fichier(FILE *ms, FILE *f, char fname[20], int taille,  int internalmode) {//0 : non triée,   1  : triée
+    FDmeta fileMeta;
+    BLOC_meta_co BuferrMeta;
+     int tableAllocation[NbBloc];
   
     
     
    
-    fseek(ms, MAX*sizeof(int), SEEK_SET);
+    fseek(ms, NbBloc*sizeof(int), SEEK_SET);
     int trouv=0,k,i,taille ;int startBlock;
     // on cherche la une metadonne vide dans la MS 
     while(!trouv){
     fread(&BuferrMeta,sizeof(BLOC_co),1,ms); 
     for ( i = 0; i < FB; i++)
     {
-        if (BuferrMeta.V[i].structnum==0){
+        if (BuferrMeta.t[i].taille==0 ){
             trouv = 1 ;
-  
+
+
             // Écrit les métadonnées du fichier dans  une meta variable
    
-             fileMeta.blocnum = ceil((double)structnum / FB);// Calculer le nombre de blocs requis
-             fileMeta.structnum = structnum;
-             fileMeta.Globalmode = 0;
-             fileMeta.internalmode =internalmode;
+             fileMeta.nbEtudiant = ceil((double)taille / FB);// Calculer le nombre de blocs requis
+             fileMeta.taille = taille;
+             fileMeta.modeglobal = 0;
+             fileMeta.modeinterne=internalmode;
 
-             int  Taill = taillede(fname);
-              for (int r = 0; r < Taill ; r++){
-                fileMeta.fname[r]=fname[r];
-                    }
-
+             strcpy(fileMeta.FDnom,fname);
 
   
-            //Trouver des  BLOCS_co vides Pour premier bloc
+            //trouver des  BLOCS_co vides Pour premier bloc
             
-           allouer_co(&startBlock, tableAllocation, fileMeta.blocnum);
-           if (startBlock == -1) {
-          printf("Erreur : Pas assez d'espace libre pour charger le fichier.\n");
-           return;
-             }
-         fileMeta.firstbloc = startBlock;
+                allouer_co(&startBlock, tableAllocation, fileMeta.nbEtudiant);
+               if (startBlock == -1) {
+               printf("Erreur : Pas assez d'espace libre pour charger le fichier.\n");
+               return;
+                }
 
-         fileMeta.etat=1; //existe
+             fileMeta.adresse = startBlock;
+            
 
-         // Écrit les métadonnées du fichier dans le ms fichier
+              // Écrit les métadonnées du fichier dans le ms fichier
 
-       
 
-        
-          BuferrMeta.V[BuferrMeta.nf+1]=fileMeta;
-          BuferrMeta.nf++;
+             BuferrMeta.t[BuferrMeta.ne+1]=fileMeta;
+             BuferrMeta.ne++;
    
             fseek(ms, -1*sizeof(BLOC_co), SEEK_CUR);
             fwrite(&BuferrMeta,sizeof(BLOC_co),1,ms);
           break;
-        }}
-
-
-
-
-
-        if(BuferrMeta.nf=FB){ // Mise à jour de la table d'allocation
-            tableAllocation[i]=0;
-            fseek(ms, 0, SEEK_SET);
-            fwrite(&tableAllocation, sizeof(int), MAX, ms);  
         }
-    
+        }
+
+
     
 
     
     // Chargement des enregistrements
     if (internalmode == 0)
-        Charger_les_élèves_non_triée_dans_fichier_de_donnée(f, fname, startBlock,  ceil((double)structnum / FB), structnum);
+        Charger_les_élèves_non_triée_dans_fichier_de_donnée(f, fname, startBlock,  ceil((double)taille / FB), taille);
     else
-       Charger_les_élèves_triée_dans_fichier_de_donnée(f, fname, startBlock,  ceil((double)structnum / FB), structnum);
+       Charger_les_élèves_triée_dans_fichier_de_donnée(f, fname, startBlock,  ceil((double)taille / FB), taille);
 
 
 
@@ -248,24 +235,24 @@ printf("Il n'y a pas assez d'espace (dans les blocMeta) pour créer le fichier'%
 /**
  * Fonction pour charger un fichier
  */
-void chargerFichier_co(FILE *ms,FILE *f, char fileName[20], int structnum ) {
-    int tableAllocation[MAX];
-    BLOCMETA BuferrMeta;
+void chargerFichier_co(FILE *ms,FILE *f, char fileName[20], int taille ) {
+    int tableAllocation[NbBloc];
+    BLOC_meta_co BuferrMeta;
     BLOC_co Buferr;
-    int blocnum, startBlock;
+    int nbEtudiant, startBlock;
 
 
 
 
 // Recherche du fichier dans les métadonnées
-   fseek(ms, MAX*sizeof(int), SEEK_SET);
+   fseek(ms, NbBloc*sizeof(int), SEEK_SET);
     int found = 0, k = 0, j = 0;
 
-    while (k < BM && found == 0) {
+    while (k < NbBlocmeta_co && found == 0) {
         fread(&BuferrMeta, sizeof(BuferrMeta), 1, ms);
 
-        for (j = 0; j < BuferrMeta.nf && found == 0; j++) {
-            if (strcmp(BuferrMeta.V[j].fname, fileName) == 0) found = 1;
+        for (j = 0; j < BuferrMeta.ne && found == 0; j++) {
+            if (strcmp(BuferrMeta.t[j].FDnom, fileName) == 0) found = 1;
         }
         k++;
     }
@@ -277,40 +264,28 @@ void chargerFichier_co(FILE *ms,FILE *f, char fileName[20], int structnum ) {
 
    printf("Le fichier existe.\n");
    
-    blocnum= BuferrMeta.V[j].blocnum;
-    startBlock=BuferrMeta.V[j].firstbloc;
+    nbEtudiant= BuferrMeta.t[j].nbEtudiant;
+    startBlock=BuferrMeta.t[j].adresse;
 
 
      int i=0;
     rewind(f) ;
-   while ( i<blocnum){
+   while ( i<nbEtudiant){
      // on lis les blocs du fichier et on les stock dans la MS
     fread(&Buferr,sizeof(BLOC_co),1,f);
       // on insere le bloc 
-    fseek(ms, MAX*sizeof(int) + BM * sizeof(BLOCMETA) + (startBlock + i) * sizeof(BLOC_co), SEEK_SET);
+    fseek(ms, NbBloc*sizeof(int) + NbBlocmeta_co * sizeof(BLOC_co) + (startBlock + i) * sizeof(BLOC_co), SEEK_SET);
     fwrite(&Buferr,sizeof(BLOC_co),1,ms);
 
    }
 
    printf("Le fichier '%s' a été chargé en mode non trié avec succès.\n", fileName);
 
-    // Lecture de la table d'allocation
-    fseek(ms, 0, SEEK_SET);
-    if (fread(&tableAllocation, sizeof(int), MAX, ms) != 1) {
-        printf("Erreur : Impossible de lire la table d'allocation.\n");
-        return;
-    }
-
     // Mise à jour de la table d'allocation
-    for (int i = startBlock; i < startBlock + blocnum; i++) {
-        tableAllocation[i] = 1;
+    for (int i = startBlock; i < startBlock + nbEtudiant; i++) {
+         update_Allocation_table(ms,i , 1)  ;
     }
 
-    fseek(ms, 0, SEEK_SET);
-    fwrite(&tableAllocation, sizeof(int), MAX, ms);
-
-    
-    
 }
 
 
@@ -324,26 +299,26 @@ void chargerFichier_co(FILE *ms,FILE *f, char fileName[20], int structnum ) {
 
    // Fonction pour renommer un fichier
 void Renommer_co(FILE *ms, char *oldName, char *newName) {
-    BLOCMETA BuferrMeta;
+    BLOC_meta_co BuferrMeta;
     int found = 0;
 
     // Positionner le curseur sur les blocs dédiés aux métadonnées
-    fseek(ms, MAX*sizeof(int), SEEK_SET); // Sauter la table d'allocation
+    fseek(ms, NbBloc*sizeof(int), SEEK_SET); // Sauter la table d'allocation
 
     // Parcourir les blocs de métadonnées
-    for (int i = 0; i < BM; i++) {
-        fread(&BuferrMeta, sizeof(BLOCMETA), 1, ms); // Lire un bloc de métadonnées
+    for (int i = 0; i < NbBlocmeta_co; i++) {
+        fread(&BuferrMeta, sizeof(BLOC_co), 1, ms); // Lire un bloc de métadonnées
 
         // Rechercher le fichier par son nom
-        for (int j = 0; j < BuferrMeta.nf; j++) {
-            if (strcmp(BuferrMeta.V[j].fname, oldName) == 0) {
+        for (int j = 0; j < BuferrMeta.ne; j++) {
+            if (strcmp(BuferrMeta.t[j].FDnom, oldName) == 0) {
                 // Fichier trouvé, modifier son nom
-                strcpy(BuferrMeta.V[j].fname, newName);
+                strcpy(BuferrMeta.t[j].FDnom, newName);
                 found = 1;
 
                 // Revenir en arrière pour réécrire le bloc mis à jour
-                fseek(ms, -sizeof(BLOCMETA), SEEK_CUR);
-                fwrite(&BuferrMeta, sizeof(BLOCMETA), 1, ms);
+                fseek(ms, -sizeof(BLOC_co), SEEK_CUR);
+                fwrite(&BuferrMeta, sizeof(BLOC_co), 1, ms);
 
                 printf("Le fichier '%s' a été renommé en '%s'.\n", oldName, newName);
                 break;
@@ -358,3 +333,62 @@ void Renommer_co(FILE *ms, char *oldName, char *newName) {
     }
 }
 
+
+
+
+
+
+ // Fonction pour supprime un fichier
+void supprime_fichier_contigue(FILE *ms, char nom[20]) {
+    BLOC_meta_co BuferrMeta;
+    FDmeta meta;
+    int i, trouv = 0, metaIndex, BlocMetacount, BlocMetaindex, startAddress, numBlocks;
+   
+
+    // Localiser les métadonnées en fonction du nom du fichier
+    fseek(ms, NbBloc * sizeof(int), SEEK_SET); // Passer la table d'allocation
+    BlocMetacount = 0;
+    while (!trouv && fread(&BuferrMeta, sizeof(BLOC_ch), 1, ms)) {
+        for (i = 0; i < BuferrMeta.ne; i++) {
+            if (strcmp(BuferrMeta.t[i].FDnom, nom) == 0) {
+                trouv = 1;
+                meta = BuferrMeta.t[i];
+                metaIndex = i;
+                BlocMetaindex = BlocMetacount;
+                break;
+            }
+        }
+        BlocMetacount++;
+    }
+
+    if (!trouv) {
+        printf("Fichier non trouvé.\n");
+        return;
+    }
+
+    // Initialisation des variables
+    startAddress = meta.adresse; // nbEtudiant du premier bloc
+    numBlocks = meta.nbEtudiant;    // Nombre de blocs alloués
+
+    // Mettre à jour la table d'allocation (libérer les blocs du fichier)
+    
+    for (int j = startAddress; j < startAddress + numBlocks; j++) {
+         update_Allocation_table(ms,j , 0);// Marquer les blocs comme libres
+    }
+
+    // Mettre à jour les métadonnées
+    meta.taille = 0; // Nombre d'étudiants
+    meta.nbEtudiant = 0;     // Nombre de blocs
+    meta.adresse = -1;   // Aucun bloc alloué
+    BuferrMeta.t[metaIndex] = meta;
+
+    // Sauvegarder les métadonnées mises à jour
+    fseek(ms, NbBloc * sizeof(int), SEEK_SET);
+    fseek(ms, BlocMetaindex * sizeof(BLOC_ch), SEEK_CUR);
+    fwrite(&BuferrMeta, sizeof(BLOC_ch), 1, ms);
+
+  
+
+    printf("Suppression du fichier terminée.\n");
+    printf("Nombre de blocs libérés : %d\n", numBlocks);
+}

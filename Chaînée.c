@@ -83,7 +83,7 @@ void Addmetadata(FILE *ms, FDmeta M){
         if(i==NbBlocmeta-1){
             perror("disk is full");
         }else{
-            meta.t[meta.ne+1]=M;
+            meta.t[meta.ne]=M;
             meta.ne++;
         }
     }

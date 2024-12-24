@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 // dans le pire des cas on aura chaque bloc ayant une metadonne
 #define FB 5
 #define NbBloc 50

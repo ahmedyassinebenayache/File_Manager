@@ -51,6 +51,10 @@ struct FDmeta
     int modeinterne ; // 0 : non triee , 1 : triee
 
 };
+typedef struct Position{
+    int nbrbloc;
+    int mov;
+}Position;
 // si on trouve un espace vide allors on le retourne (apres chaque allocation il faudra metre a jour la tablle d'allocation)
 int allouer (FILE *ms ){
     int k=-1 ,table[NbBloc]  ;
@@ -63,6 +67,131 @@ int allouer (FILE *ms ){
         }
     }
         return k ;
+}
+void Addmetadata(FILE *ms, FDmeta M){
+    BLOC_meta meta;
+    fseek(ms, NbBloc* sizeof(int),SEEK_SET);
+    fread(&meta, sizeof(BLOC_ch),1,ms);
+    if(meta.ne!=FB){
+        int i;
+        for ( i = 1; i < NbBlocmeta; ++i) {
+            fread(&meta, sizeof(BLOC_ch),1,ms);
+            if(meta.ne!=FB){
+                break;
+            }
+        }
+        if(i==NbBlocmeta-1){
+            perror("disk is full");
+        }else{
+            meta.t[meta.ne+1]=M;
+            meta.ne++;
+        }
+    }
+    rewind(ms);
+}
+Position Searchmetadata(FILE *ms, FDmeta M){
+    BLOC_meta meta;
+    fseek(ms, NbBloc* sizeof(int),SEEK_SET);
+    for (int j = 0; j <NbBlocmeta ; ++j) {
+        fread(&meta, sizeof(BLOC_ch), 1, ms);
+        for (int i = 0; i <FB; ++i) {
+            if (strcmp(meta.t[i].FDnom, M.FDnom) == 0) {
+                Position X;
+                X.nbrbloc=j;
+                X.mov=i;
+                return X;
+            }
+        }
+    }
+    Position y;
+    y.mov=-1;
+    y.nbrbloc=-1;
+    rewind(ms);
+    return y;
+}
+int SortedSearch(BLOC_ch buffer,int ID) {
+    if (buffer.t[buffer.ne - 1].id < ID || ID<buffer.t[0].id) {
+        return -1;
+    } else {
+        int size=(int)(buffer.ne/2);
+        int left = 0;
+        int right = size - 1;
+
+        while (left <= right) {
+            int mid = left + (right - left) / 2; // Avoid overflow
+
+            // Check if target is present at mid
+            if (buffer.t[mid].id == ID) {
+                return mid;
+            }
+
+            // If target is greater, ignore the left half
+            if (buffer.t[mid].id < ID) {
+                left = mid + 1;
+            }
+            else {
+                right = mid - 1;
+            }
+        }
+        return -1;
+    }
+}
+void remplissagetriee(Tetudiant T[],int ne){
+    for (int i = 0; i <  ne  ; ++i) {
+        printf("ID : ");
+        scanf("%d", &T[i].id);
+
+        printf("Nom : ");
+        scanf(" %s", &T[i].nom);
+
+        printf("Prenom : ");
+        scanf("%s",&T[i].prenom);
+
+        printf("Section : ");
+        scanf("%c",&T[i].sec);
+        T[i].etat= 1;
+    }
+    for (int i = 0; i < ne; i++) {
+        for (int j = i+1; j < ne; ++j) {
+            if(T[i].id>T[j].id){
+                Tetudiant temp ;
+                temp=T[j];
+                T[j]=T[i];
+                T[i]=temp;
+            }
+        }
+    }
+}
+void Creer_du_fichiertrieechainee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant){
+    // creation de metadonne
+    FDmeta meta ;
+    meta.nbEtudiant=nbEtudiant;
+    fseek(ms, NbBloc*sizeof(int), SEEK_SET);
+    printf("donne moi le nom du fichier");
+    scanf("%s",&meta.FDnom);
+    meta.taille = ceil((double)nbEtudiant / FB);
+    meta.adresse = allouer(ms) ;
+    Addmetadata(ms,meta);
+
+    // ajouter les etudiants dans le fichier
+    rewind(f) ;
+    Tetudiant A[meta.nbEtudiant];
+    remplissagetriee(A,meta.nbEtudiant);
+    int size =meta.nbEtudiant;
+    BLOC_ch buffer;
+    int j=0;
+    while(size<FB && j<meta.nbEtudiant ){
+        for (int i = 0; i < FB; i++){
+            buffer.t[i]=A[j];
+            j++;
+        }
+        fwrite(&buffer, sizeof(BLOC_ch),1,f);
+        size-=FB;
+    }
+    for(int i=0; i<size;i++){
+        buffer.t[i]=A[j+i];
+    }
+    fwrite(&buffer, sizeof(BLOC_ch),1,f);
 }
 void creer_un_fichier_chainee_non_triee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant){
     // creation de metadonne
@@ -177,6 +306,39 @@ void chargement_fichier_chainee(FILE *ms,FILE *f,char nom[20]){
     i++ ;
     }
 }
+Position Recherche_Sur_un_fichier_chainee_triee(int ID,FILE *ms,char nom[20]){
+    int z=sizeof(int)*NbBloc;
+    fseek(ms,z,SEEK_SET);
+    fseek(ms, NbBloc * sizeof(int), SEEK_SET);
+    Position metapos;
+    BLOC_ch buffer;
+    FDmeta meta;
+    strcpy(meta.FDnom, nom);
+    metapos = Searchmetadata(ms, meta);
+    fseek(ms,metapos.nbrbloc*sizeof(BLOC_ch)+metapos.mov* sizeof(FDmeta),SEEK_CUR );
+    fread(&meta, sizeof(FDmeta),1,ms);
+    fseek(ms,z+(NbBlocmeta+meta.adresse)* sizeof(BLOC_ch),SEEK_SET);
+    fread(&buffer,sizeof(BLOC_ch),1,ms);//read the first block
+    Position x;
+    x.mov=0;
+    x.nbrbloc=meta.adresse;
+    while (buffer.next!=-1) {
+
+        if(SortedSearch(buffer, ID)!=-1){//check if the id is in the block
+            x.mov= SortedSearch(buffer,ID);
+            return x;
+        }
+        rewind(ms);
+        x.nbrbloc=buffer.next;
+        fseek(ms,((buffer.next+NbBlocmeta))*sizeof(BLOC_ch)+z,SEEK_SET); //go to the next block
+        fread(&buffer, sizeof(BLOC_ch),1,ms);//read the next block
+    }
+    perror("id not found");
+    Position y;
+    y.nbrbloc=-1;
+    y.mov=-1;
+    return y;
+}
 void ajouter_etudiant_fichier_chainee_non_triee(FILE *ms,FILE *f ,char nom[20]){
     Tetudiant etudiant ;
     BLOC_ch buffer2 ;
@@ -277,7 +439,86 @@ void ajouter_etudiant_fichier_chainee_non_triee(FILE *ms,FILE *f ,char nom[20]){
 
 
 }
+void insertiondansunfichierTriee(FILE *ms, FDmeta m, Tetudiant x) {
+    // Move the file pointer to the starting address of the linked list in the file
+    fseek(ms, NbBloc * sizeof(int) + (NbBlocmeta + m.adresse) * sizeof(BLOC_ch), SEEK_SET);
 
+    BLOC_ch buffer; // Temporary buffer to hold a block of students
+    m.nbEtudiant++; // Increment the number of students
+    m.taille = ceil((double)m.nbEtudiant / FB); // Recalculate the file size based on the number of students
+
+    Tetudiant A[m.nbEtudiant]; // Temporary array to hold all students in memory
+    int j = 0;
+
+    // Read all blocks and copy their data into the temporary array A
+    fread(&buffer, sizeof(BLOC_ch), 1, ms);
+    while (buffer.next != -1) {
+        for (int i = 0; i < buffer.ne; ++i) {
+            A[j] = buffer.t[i]; // Copy each student into the array
+            j++;
+        }
+        // Move to the next block in the linked list
+        fseek(ms, NbBloc * sizeof(int) + (NbBlocmeta + buffer.next) * sizeof(BLOC_ch), SEEK_SET);
+        fread(&buffer, sizeof(BLOC_ch), 1, ms);
+    }
+
+    int bool = 0; // Flag to indicate whether the new student has been inserted
+    int i = 0;
+    j = m.nbEtudiant;
+
+    // Insert the new student (x) into the correct position in the sorted array
+    while (i < m.nbEtudiant) {
+        // Check if x should be inserted between A[i] and A[i+1]
+        if (A[i].id < x.id && x.id > A[i + 1].id) {
+            while (j > i + 1) { // Shift elements to make space for x
+                A[j] = A[j - 1];
+                j--;
+            }
+            A[i + 1] = x; // Insert x into the array
+            bool = 1; // Mark the insertion as complete
+        }
+        if (bool == 1) { // Exit loop once insertion is done
+            break;
+        }
+        i++;
+    }
+
+    j = 0; // Reset the index for writing back data to the file
+
+    // Write updated data back into the file blocks
+    fseek(ms, NbBloc * sizeof(int) + (NbBlocmeta + m.adresse) * sizeof(BLOC_ch), SEEK_SET);
+    while (buffer.next != -1) {
+        for (int i = 0; i < buffer.ne; ++i) {
+            buffer.t[i] = A[j]; // Copy data from the array into the buffer
+            j++;
+        }
+        // Move to the next block in the linked list and write back the buffer
+        fseek(ms, NbBloc * sizeof(int) + (NbBlocmeta + buffer.next) * sizeof(BLOC_ch), SEEK_SET);
+        fwrite(&buffer, sizeof(BLOC_ch), 1, ms);
+    }
+
+    // If there are still students left in the array, allocate a new block
+    if (j != m.nbEtudiant) {
+        int k, l = 0;
+        k = allouer(ms); // Allocate a new block in the file
+        if (k != -1) {
+            buffer.next = k; // Link the new block to the current chain
+        } else {
+            perror("Disk is full"); // Handle allocation failure
+            return;
+        }
+
+        // Write remaining students into the newly allocated block
+        while (j < m.nbEtudiant) {
+            buffer.t[l] = A[j];
+            j++;
+            l++;
+        }
+        buffer.ne = l; // Update the number of students in the new block
+        fseek(ms, NbBloc * sizeof(int) + (NbBlocmeta + buffer.next) * sizeof(BLOC_ch), SEEK_SET);
+        fwrite(&buffer, sizeof(BLOC_ch), 1, ms);
+    }
+}
 void recherche_fichier_chainee_non_triee(FILE *ms, char nom[20],int id,int p[2],FILE *f){
     fseek(ms, NbBloc*sizeof(int), SEEK_SET);
     BLOC_meta bloCmeta ;

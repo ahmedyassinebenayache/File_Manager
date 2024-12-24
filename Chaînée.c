@@ -735,7 +735,7 @@ void supprime_fichier_chainee(FILE *ms , char nom[20], char nouveaunom[20]){
     fwrite(&bloCmeta, sizeof(BLOC_ch), 1, ms);
     printf("Suppression du fichier terminée.\n");
 }
-void suppression_logique_fichier_chainee_non_triee(FILE *ms, FILE *f, char nom[20], int id) {
+void suppression_logique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id) {
     BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;
@@ -793,7 +793,7 @@ void suppression_logique_fichier_chainee_non_triee(FILE *ms, FILE *f, char nom[2
     printf("Nombre d'étudiants mis à jour : %d\n", meta.nbEtudiant);
 }
 }
-void defragmentation_fichier_chainee_non_triee(FILE *ms, FILE *f, char nom[20], int id) {
+void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id) {
     BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;

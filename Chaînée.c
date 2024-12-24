@@ -626,7 +626,7 @@ void suppression_physique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int i
     fclose(f) ;
     FILE *file = fopen(nom, "w");
     fclose(f) ;
-    FILE *file = fopen(nom, "rb+");
+    file = fopen(nom, "rb+");
     rewind(f) ;
     for ( i = 0; i < nbetudiant; i++)
     {   int j = 0 ;

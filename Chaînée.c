@@ -488,7 +488,11 @@ void insertiondansunfichierTriee(FILE *ms, FDmeta m, Tetudiant x) {
 
     // Write updated data back into the file blocks
     fseek(ms, NbBloc * sizeof(int) + (NbBlocmeta + m.adresse) * sizeof(BLOC_ch), SEEK_SET);
+    int previous;
     while (buffer.next != -1) {
+        if(buffer.next != -1){
+        previous=buffer.next;
+        }
         for (int i = 0; i < buffer.ne; ++i) {
             buffer.t[i] = A[j]; // Copy data from the array into the buffer
             j++;
@@ -500,18 +504,13 @@ void insertiondansunfichierTriee(FILE *ms, FDmeta m, Tetudiant x) {
 
     // If there are still students left in the array, allocate a new block
     if (j != m.nbEtudiant) {
+        if(buffer.ne==FB){
         int k, l = 0;
         k = allouer(ms); // Allocate a new block in the file
         if (k != -1) {
             buffer.next = k;// Link the new block to the current chain
          update_Allocation_Table(ms,buffer.next,1) ;
-        } else {
-            perror("Disk is full"); // Handle allocation failure
-            return;
-        }
-
-        // Write remaining students into the newly allocated block
-        while (j < m.nbEtudiant) {
+             while (j < m.nbEtudiant) {
             buffer.t[l] = A[j];
             j++;
             l++;
@@ -519,7 +518,21 @@ void insertiondansunfichierTriee(FILE *ms, FDmeta m, Tetudiant x) {
         buffer.ne = l; // Update the number of students in the new block
         fseek(ms, NbBloc * sizeof(int) + (NbBlocmeta + buffer.next) * sizeof(BLOC_ch), SEEK_SET);
         fwrite(&buffer, sizeof(BLOC_ch), 1, ms);
-    }
+        } else {
+            perror("Disk is full"); // Handle allocation failure
+            return;
+        }
+        }else{
+            l=buffer.ne-1;
+             while (j < m.nbEtudiant) {
+            buffer.t[l] = A[j];
+            j++;
+            l++;
+        }
+        buffer.ne = l; // Update the number of students in the last block
+        fseek(ms, NbBloc * sizeof(int) + (NbBlocmeta + previous) * sizeof(BLOC_ch), SEEK_SET);
+        fwrite(&buffer, sizeof(BLOC_ch), 1, ms);     
+}
 }
 void recherche_fichier_chainee_non_triee(FILE *ms, char nom[20],int id,int p[2],FILE *f){
     fseek(ms, NbBloc*sizeof(int), SEEK_SET);

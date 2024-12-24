@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,19 +26,12 @@ struct BLOC_ch
     int ne;
     int next ;
 };
-typedef struct BLOC_meta_ch BLOC_meta_ch;
-struct BLOC_meta_ch
+typedef struct BLOC_meta BLOC_meta;
+struct BLOC_meta
 {
     FDmeta t[FB];
     int ne;
     int next ;    
-};
-
-typedef struct BLOC_meta_co BLOC_meta_co;
-struct BLOC_meta_co
-{
-    FDmeta t[FB];
-    int ne; 
 };
 
 typedef struct BLOC_co BLOC_co;

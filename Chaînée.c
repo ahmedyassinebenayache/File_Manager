@@ -171,6 +171,7 @@ void Creer_du_fichiertrieechainee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant)
     scanf("%s",&meta.FDnom);
     meta.taille = ceil((double)nbEtudiant / FB);
     meta.adresse = allouer(ms) ;
+    update_Allocation_Table(ms,meta.adresse,1) ;
     Addmetadata(ms,meta);
 
     // ajouter les etudiants dans le fichier
@@ -502,7 +503,8 @@ void insertiondansunfichierTriee(FILE *ms, FDmeta m, Tetudiant x) {
         int k, l = 0;
         k = allouer(ms); // Allocate a new block in the file
         if (k != -1) {
-            buffer.next = k; // Link the new block to the current chain
+            buffer.next = k;// Link the new block to the current chain
+         update_Allocation_Table(ms,buffer.next,1) ;
         } else {
             perror("Disk is full"); // Handle allocation failure
             return;

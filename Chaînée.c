@@ -71,7 +71,7 @@ int allouer (FILE *ms ){
     }
         return k ;
 }
-void creer_un_fichier_chainne_non_triee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant){
+void creer_un_fichier_chainee_non_triee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant){
     // creation de metadonne
     FDmeta meta ;
     BLOC_meta_ch bloCmeta ;
@@ -139,7 +139,7 @@ void creer_un_fichier_chainne_non_triee(FILE *ms ,FILE *f,char nom[20],int nbEtu
         fwrite(&buffer, sizeof(BLOC_ch), 1, f);
     }
 }   
-void chargement_du_fichier_contigue_non_triee(FILE *ms,FILE *f,char nom[20]){
+void chargement_fichier_chainee_non_triee(FILE *ms,FILE *f,char nom[20]){
     fseek(ms, NbBloc*sizeof(int), SEEK_SET);
     BLOC_meta_ch bloCmeta ;
     BLOC_ch buffer ;
@@ -184,7 +184,7 @@ void chargement_du_fichier_contigue_non_triee(FILE *ms,FILE *f,char nom[20]){
     i++ ;
     }
 }
-void ajouter_etudiant_fichier_contigue_non_triee(FILE *ms,FILE *f ,char nom[20]){
+void ajouter_etudiant_fichier_chainee_non_triee(FILE *ms,FILE *f ,char nom[20]){
     Tetudiant etudiant ;
     BLOC_ch buffer2 ;
     fseek(ms, NbBloc*sizeof(int), SEEK_SET);
@@ -285,7 +285,7 @@ void ajouter_etudiant_fichier_contigue_non_triee(FILE *ms,FILE *f ,char nom[20])
 
 }
 
-void recherche_fichier_contigue_non_triee(FILE *ms, char nom[20],int id,int p[2],FILE *f){
+void recherche_fichier_chainee_non_triee(FILE *ms, char nom[20],int id,int p[2],FILE *f){
     fseek(ms, NbBloc*sizeof(int), SEEK_SET);
     BLOC_meta_ch bloCmeta ;
     BLOC_ch buffer, buffer2 ;
@@ -335,7 +335,7 @@ void recherche_fichier_contigue_non_triee(FILE *ms, char nom[20],int id,int p[2]
 
 }
 }
-void suppression_physique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id) {
+void suppression_physique_fichier_chainee_non_triee(FILE *ms, FILE *f, char nom[20], int id) {
     BLOC_meta_ch bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;
@@ -416,13 +416,13 @@ void suppression_physique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int i
     fseek(ms, blocmetaindex*sizeof(BLOC_ch), SEEK_CUR);
     fwrite(&bloCmeta, sizeof(BLOC_ch), 1, ms);
     // on charge le fichier en MS
-    chargement_du_fichier_contigue_non_triee(ms,f,nom) ;
+    chargement_fichier_chainee_non_triee(ms,f,nom) ;
     printf("Suppression physique terminée.\n");
     printf("Nombre d'étudiants mis à jour : %d\n", nbetudiant);
     printf("Nombre de blocs mis à jour : %d\n", blocCount);
     free(arr) ;
 }
-void renomer_fichier_contigue_non_triee(FILE *ms , char nom[20], char nouveaunom[20]){
+void renomer_fichier_chainee_non_triee(FILE *ms , char nom[20], char nouveaunom[20]){
     BLOC_meta_ch bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;
@@ -451,7 +451,7 @@ void renomer_fichier_contigue_non_triee(FILE *ms , char nom[20], char nouveaunom
     fseek(ms, -1 * sizeof(BLOC_ch), SEEK_SET);
     fwrite(&bloCmeta, sizeof(BLOC_ch), 1, ms);
 }
-void supprime_fichier_contigue_non_triee(FILE *ms , char nom[20], char nouveaunom[20]){
+void supprime_fichier_chainee_non_triee(FILE *ms , char nom[20], char nouveaunom[20]){
     BLOC_meta_ch bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;
@@ -499,7 +499,7 @@ void supprime_fichier_contigue_non_triee(FILE *ms , char nom[20], char nouveauno
     fwrite(&bloCmeta, sizeof(BLOC_ch), 1, ms);
     printf("Suppression du fichier terminée.\n");
 }
-void suppression_logique_fichier_chainne_non_triee(FILE *ms, FILE *f, char nom[20], int id) {
+void suppression_logique_fichier_chainee_non_triee(FILE *ms, FILE *f, char nom[20], int id) {
     BLOC_meta_ch bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;

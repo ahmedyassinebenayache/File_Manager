@@ -26,19 +26,12 @@ struct BLOC_ch
     int ne;
     int next ;
 };
-typedef struct BLOC_meta_ch BLOC_meta_ch;
-struct BLOC_meta_ch
+typedef struct BLOC_meta BLOC_meta;
+struct BLOC_meta
 {
     FDmeta t[FB];
     int ne;
     int next ;    
-};
-
-typedef struct BLOC_meta_co BLOC_meta_co;
-struct BLOC_meta_co
-{
-    FDmeta t[FB];
-    int ne; 
 };
 
 typedef struct BLOC_co BLOC_co;
@@ -74,7 +67,7 @@ int allouer (FILE *ms ){
 void creer_un_fichier_chainee_non_triee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant){
     // creation de metadonne
     FDmeta meta ;
-    BLOC_meta_ch bloCmeta ;
+    BLOC_meta bloCmeta ;
     fseek(ms, NbBloc*sizeof(int), SEEK_SET);
     int trouv=0,k,taille ;
     // on cherche la une metadonne vide dans la MS 
@@ -95,13 +88,13 @@ void creer_un_fichier_chainee_non_triee(FILE *ms ,FILE *f,char nom[20],int nbEtu
             meta.taille=taille ;
             // generer l'adresse du premier bloc
             meta.adresse = allouer(ms) ;
-            // mise a jour de la tablle 
-            update_Allocation_Table(ms,meta.adresse,1) ;
             // insertion du bloc apres insertion du nouvelle metadonne
             bloCmeta.t[i]=meta ;
             bloCmeta.ne++ ;
             fseek(ms, -1*sizeof(BLOC_ch), SEEK_CUR);
             fwrite(&bloCmeta,sizeof(BLOC_ch),1,ms);
+            // mise a jour de la tablle 
+            update_Allocation_Table(ms,meta.adresse,1) ;
 
 
         }
@@ -141,7 +134,7 @@ void creer_un_fichier_chainee_non_triee(FILE *ms ,FILE *f,char nom[20],int nbEtu
 }   
 void chargement_fichier_chainee_non_triee(FILE *ms,FILE *f,char nom[20]){
     fseek(ms, NbBloc*sizeof(int), SEEK_SET);
-    BLOC_meta_ch bloCmeta ;
+    BLOC_meta bloCmeta ;
     BLOC_ch buffer ;
     FDmeta meta ;
     int i=0, trouv=0 ;
@@ -188,7 +181,7 @@ void ajouter_etudiant_fichier_chainee_non_triee(FILE *ms,FILE *f ,char nom[20]){
     Tetudiant etudiant ;
     BLOC_ch buffer2 ;
     fseek(ms, NbBloc*sizeof(int), SEEK_SET);
-    BLOC_meta_ch bloCmeta ;
+    BLOC_meta bloCmeta ;
     BLOC_ch buffer1 ;
     FDmeta meta ;   
     // numerobloc pour suivre le numero du bloc 
@@ -287,7 +280,7 @@ void ajouter_etudiant_fichier_chainee_non_triee(FILE *ms,FILE *f ,char nom[20]){
 
 void recherche_fichier_chainee_non_triee(FILE *ms, char nom[20],int id,int p[2],FILE *f){
     fseek(ms, NbBloc*sizeof(int), SEEK_SET);
-    BLOC_meta_ch bloCmeta ;
+    BLOC_meta bloCmeta ;
     BLOC_ch buffer, buffer2 ;
     FDmeta meta ;
     // on cherche la metadonne 
@@ -336,7 +329,7 @@ void recherche_fichier_chainee_non_triee(FILE *ms, char nom[20],int id,int p[2],
 }
 }
 void suppression_physique_fichier_chainee_non_triee(FILE *ms, FILE *f, char nom[20], int id) {
-    BLOC_meta_ch bloCmeta;
+    BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;
     int i, trouv = 0, currentAddress, metaIndex, previousAddress ,blocmetacount ,blocmetaindex ;
@@ -423,7 +416,7 @@ void suppression_physique_fichier_chainee_non_triee(FILE *ms, FILE *f, char nom[
     free(arr) ;
 }
 void renomer_fichier_chainee_non_triee(FILE *ms , char nom[20], char nouveaunom[20]){
-    BLOC_meta_ch bloCmeta;
+    BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;
     int i, trouv = 0, currentAddress, metaIndex, previousAddress ,blocmetacount ,blocmetaindex ;
@@ -452,7 +445,7 @@ void renomer_fichier_chainee_non_triee(FILE *ms , char nom[20], char nouveaunom[
     fwrite(&bloCmeta, sizeof(BLOC_ch), 1, ms);
 }
 void supprime_fichier_chainee_non_triee(FILE *ms , char nom[20], char nouveaunom[20]){
-    BLOC_meta_ch bloCmeta;
+    BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;
     int i, trouv = 0, currentAddress, metaIndex, previousAddress ,blocmetacount ,blocmetaindex ;
@@ -500,7 +493,7 @@ void supprime_fichier_chainee_non_triee(FILE *ms , char nom[20], char nouveaunom
     printf("Suppression du fichier terminée.\n");
 }
 void suppression_logique_fichier_chainee_non_triee(FILE *ms, FILE *f, char nom[20], int id) {
-    BLOC_meta_ch bloCmeta;
+    BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;
     int i, trouv = 0, currentAddress, metaIndex, previousAddress ,blocmetacount ,blocmetaindex ;
@@ -558,7 +551,7 @@ void suppression_logique_fichier_chainee_non_triee(FILE *ms, FILE *f, char nom[2
 }
 }
 void defragmentation_fichier_chainee_non_triee(FILE *ms, FILE *f, char nom[20], int id) {
-    BLOC_meta_ch bloCmeta;
+    BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;
     int i, trouv = 0, currentAddress, metaIndex, previousAddress ,blocmetacount ,blocmetaindex ;

@@ -121,6 +121,42 @@ void trierTetudiants(Tetudiant *tTetudiant, int taille) {
         }
     }
 }
+//chercher méta-données 
+FDmeta Searchmetadata(FILE *ms, char fname[30]){
+    BLOC_meta_co meta;
+    fseek(ms, MAX* sizeof(int),SEEK_SET);
+        for (int j = 0; j <NbBLOC_meta_co ; ++j) {
+            fread(&meta, sizeof(BLOC_ch), 1, ms);
+            for (int i = 0; i <FB; ++i) {
+                if (strcmp(meta.t[i].fname, fname) == 1) {                    
+                    return meta.t[i];
+                }
+            }
+        }        
+    }
+
+//Mis à jour méta-données 
+void MAJMETADATA(FILE *ms, FDmeta M){
+    BLOC_meta_co meta;
+    int cont_block_meta = 0;
+    while(cont_block_meta < NbBLOC_meta_co){
+        rewind(ms);
+        fseek(ms, (MAX + cont_block_meta)* sizeof(int),SEEK_SET);
+        fread(&meta, sizeof(BLOC_ch),1,ms);
+        int cont_meta = 0;
+        while(cont_meta < meta.ne){
+            if(strcmp(meta.t[cont_meta].fname, M.fname)==0){
+                meta.t[cont_meta] = M;
+                fseek(ms, (MAX + cont_block_meta)* sizeof(int), SEEK_SET);
+                fwrite(&meta, sizeof(BLOC_ch),1,ms);
+                return;
+            }
+            cont_meta++;
+        }
+        cont_block_meta++;
+    }
+    perror("fichier non trouvé");
+}
 
 
 
@@ -359,6 +395,362 @@ void chargerFichier_co(FILE *ms,FILE *f, char fileName[20], int taille ) {
          update_Allocation_table(ms,i , 1)  ;
     }
 
+}
+
+
+//insertion d'un nouveau etudiant
+void insertion_co(FILE *MS, char file_name[30]){
+    BLOC_meta_co F_m;
+    FDmeta META;
+    Tetudiant nouv_Tetudiant;
+
+    printf("Entrer les ineormations de votre nouveau etudiant\n");    
+    printf("Le nom\n");
+    scane("%s",nouv_Tetudiant.nom);        
+    printf("Le prenom\n");
+    scane("%s",nouv_Tetudiant.prenom);
+    printf("L'identifiant\n");
+    scane("%d",&nouv_Tetudiant.id);
+    printf("La section\n");
+    scane("%c",&nouv_Tetudiant.sec);
+    nouv_Tetudiant.etat = 1;    
+
+    
+    rewind(MS);
+    META = Searchmetadata(MS,&file_name);
+
+    if(strcmp(file_name,META.fname) == 0){
+        BLOCTable alloc_table;
+        BLOC_co buffer;
+        rewind(MS);        
+        int add_first_block = META.adresse ;
+        fseek(MS, ((add_first_block + META.taille) - 1)*sizeof(BLOC_meta_co)+MAX*sizeof(int),SEEK_SET);
+        fread(&buffer, sizeof(BLOC_co), 1, MS);
+        if(META.modeinterne == 0){        
+            if(buffer.ne < FB){
+                buffer.t[buffer.ne] = nouv_Tetudiant;
+                buffer.ne++;
+                META.nbEtudian ++;
+                fseek(MS, -sizeof(BLOC_co), SEEK_CUR);
+                fwrite(&buffer, sizeof(BLOC_co), 1, MS);
+                MAJMETADATA(MS, META);
+            }else{
+                rewind(MS);
+                fread(&alloc_table, sizeof(BLOCTable), 1, MS);
+                int conteur = (add_first_block + META.taille) - 1;    
+                if(alloc_table.tableAllocation[conteur + 1] == 0){
+                    //Faire entrer ce nouveau etudiant dans un nouveau block
+                    META.taille = META.taille + 1;
+                    META.nbEtudian = META.nbEtudian + 1;            
+                    MAJMETADATA(MS, META);
+                    rewind(MS);
+                    fseek(MS,(conteur-1)*sizeof(BLOC_meta_co), SEEK_SET);
+                    buffer.t[0] = nouv_Tetudiant;
+                    buffer.ne = 1;
+                    fwrite(&buffer, sizeof(buffer), 1, MS);                          
+                }else{
+                    printf("Impossible d'ajouter un etudiant, la table de allocation est pleine\n");
+                }
+            }
+        }else{
+            int block_counteur = 0;
+            int nb_block = META.taille;
+            while(block_counteur < nb_block){
+                rewind(MS);
+                fseek(MS, ((add_first_block + block_counteur) - 1)*sizeof(BLOC_meta_co)+MAX*sizeof(int),SEEK_SET);
+                fread(&buffer, sizeof(BLOC_co), 1, MS);
+                int conteur_buffer = 0;
+                while(conteur_buffer < buffer.ne && buffer.t[conteur_buffer].id < nouv_Tetudiant.id){
+                    conteur_buffer++;
+                }
+                if(buffer.t[conteur_buffer].id > nouv_Tetudiant.id){
+                    if(buffer.ne < FB){
+                        int temp = conteur_buffer;
+                        conteur_buffer = buffer.ne - 1;
+                        while(conteur_buffer != temp ){
+                            buffer.t[conteur_buffer + 1] = buffer.t[conteur_buffer];
+                            conteur_buffer--;
+                        }
+                        buffer.t[conteur_buffer] = nouv_Tetudiant;
+                        buffer.ne++;                        
+                        fseek(MS, -sizeof(BLOC_co), SEEK_CUR);
+                        fwrite(&buffer, sizeof(BLOC_co), 1, MS);                            
+                    }else{                        
+                        BLOC_co temp_buffer;
+                        temp_buffer = buffer;
+                        int nbe = 0;
+                        while(temp_buffer.ne == FB){
+                            fread(&buffer, sizeof(BLOC_co), 1,MS);
+                            nbe = nbe + temp_buffer.ne;                            
+                        }
+                        Tetudiant vect[nbe];                        
+                        if(temp_buffer.ne != FB ){
+                            Tetudiant vect[nbe];
+                            temp_buffer = buffer;
+                            //traité le block actuel
+                            int j = 0;
+                            int i;
+                            for(i = 0; i <= FB ; i++){
+                                if(i == conteur_buffer){
+                                    vect[i] = nouv_Tetudiant;
+                                    vect[i + 1] = temp_buffer.t[j];
+                                    i++;                                   
+                                }else{
+                                    vect[i] = temp_buffer.t[j];
+                                }
+                                i++;
+                                j++;
+                            }
+                            //traité le reste                           
+                            int r_nbe = nbe - (FB + 1);
+                            fseek(MS, ((add_first_block + block_counteur) - 1)*sizeof(BLOC_meta_co)+MAX*sizeof(int),SEEK_SET);
+                            while(r_nbe > 0){
+                                fread(&temp_buffer, sizeof(BLOC_meta_co), 1,MS);
+                                j = 0;
+                                while(j < temp_buffer.ne ){
+                                    vect[i] = temp_buffer.t[j];
+                                    i++;
+                                    j++;
+                                }
+                            }
+                            temp_buffer.ne++;
+                            fseek(MS, -sizeof(BLOC_co), SEEK_CUR);
+                            fwrite(&temp_buffer, sizeof(BLOC_meta_co), 1, MS);
+                            fseek(MS, ((add_first_block + block_counteur) - 1)*sizeof(BLOC_meta_co)+MAX*sizeof(int),SEEK_SET);  
+                            fread(&buffer, sizeof(BLOC_co), 1, MS);
+                            j = 0;                          
+                            for(i = 0; i<nbe ; i++){
+                                if(j < buffer.ne){                                    
+                                    buffer.t[j] = vect[i];
+                                    j++;
+                                }else{
+                                    j = 0;
+                                    fread(&buffer, sizeof(BLOC_co), 1, MS);
+                                }
+                            }                               
+                        }else{
+                            printf("Impossible d'ajouter un etudiant, la table de allocation est pleine\n");
+                        }                        
+                    }                    
+                    META.nbEtudian ++;                    
+                    MAJMETADATA(MS, META);
+                    return;
+                }else{
+                    block_counteur++;
+                }                
+            }
+                
+        }            
+        
+    }else{
+        printf("Fichier %s non trouvé\n", file_name);
+        
+        return;
+    }
+}
+
+//La recherche d'un etudiant
+void Recherche_co(FILE *MS, int id_Tetudiant, int *num_block, int *deplacement) {
+    BLOC_meta_co F_m;
+    FDmeta m_eta;
+    BLOC_co buffer;
+
+    // Ouvrir le fichier en mode lecture binaire
+    
+    if (MS == NULL) {
+        perror("Erreur lors de l'ouverture du fichier");
+        return;
+    }
+
+    int conteur_block_meta = 0;
+    fseek(MS, MAX* sizeof(int),SEEK_SET);
+    // Parcourir les blocs de métadonnées
+    while (conteur_block_meta < NbBLOC_meta_co) {        
+        fread(&F_m, sizeof(BLOC_meta_co), 1, MS);
+        // Parcourir les métadonnées de chaque fichier
+        for (int conteur_meta = 0; conteur_meta < F_m.ne; conteur_meta++) {
+            m_eta = F_m.t[conteur_meta];
+
+            // Mode non_triée
+            if (m_eta.modeinterne == 0) {
+                for (int n_blk = 0; n_blk < m_eta.taille; n_blk++) {
+                    fseek(MS, ((m_eta.adresse  + n_blk) - 1) * sizeof(BLOC_co), SEEK_SET);
+                    fread(&buffer, sizeof(BLOC_co), 1, MS);
+
+                    for (int cont_buff = 0; cont_buff < buffer.ne; cont_buff++) {
+                        if (buffer.t[cont_buff].id == id_Tetudiant) {
+                            *num_block = m_eta.adresse  + n_blk;
+                            *deplacement = cont_buff;
+                            fclose(MS);
+                            return;
+                        }
+                    }
+                }
+            } 
+            // Mode triée
+            else {
+                for (int n_blk = 0; n_blk < m_eta.taille; n_blk++) {
+                    fseek(MS, ((m_eta.adresse  + n_blk) - 1) * sizeof(BLOC_co), SEEK_SET);
+                    fread(&buffer, sizeof(BLOC_co), 1, MS);
+
+                    int debut_block = 0;
+                    int fin_block = buffer.ne - 1;
+
+                    // Recherche binaire dans le bloc
+                    while (debut_block <= fin_block) {
+                        int milieu_block = (debut_block + fin_block) / 2;
+
+                        if (buffer.t[milieu_block].id == id_Tetudiant) {
+                            *num_block = m_eta.adresse  + n_blk;
+                            *deplacement = milieu_block;
+                            fclose(MS);
+                            return;
+                        }
+
+                        if (buffer.t[milieu_block].id > id_Tetudiant) {
+                            fin_block = milieu_block - 1;
+                        } else {
+                            debut_block = milieu_block + 1;
+                        }
+                    }
+                }
+            }
+        }
+        conteur_block_meta++;
+    }
+
+    // Si l'étudiant n'a pas été trouvé
+    printf("L'étudiant avec l'identifiant %d n'a pas été trouvé\n", id_Tetudiant);
+    fclose(MS);
+}
+
+
+//Suppression d'un enregistrement logiquement 
+void Suppression_Enregistrement_logique_co(FILE *MS, int ID_SUPP_Tetudiant, char file_name[30]) {
+    BLOC_meta_co F_M;
+    FDmeta me_ta;
+
+    MS = fopen("disk.dat", "r+"); // Correction pour ouvrir un fichier avec un nom fixe
+    if (MS == NULL) {
+        perror("Erreur d'ouverture du fichier");
+        return;
+    }
+
+    me_ta = Searchmetadata(MS, file_name);
+    if (strcmp(file_name, me_ta.fname) == 0) {
+        BLOC_co buffer;
+        int num_block = -1;
+        int deplacement = -1;
+
+        Recherche(MS, ID_SUPP_Tetudiant, &num_block, &deplacement);
+        if (num_block != -1 && deplacement != -1) {
+            // Positionnement au bloc concerné
+            fseek(MS, (num_block - 1) * sizeof(BLOC_co), SEEK_SET);
+            fread(&buffer, sizeof(BLOC_co), 1, MS);
+
+            // Suppression logique
+            buffer.t[deplacement].etat = 0;               
+
+            // Écriture des modifications
+            fseek(MS, -sizeof(BLOC_co), SEEK_CUR);
+            fwrite(&buffer, sizeof(BLOC_co), 1, MS);
+            MAJMETADATA(MS, me_ta);
+
+            printf("L'étudiant a été supprimé avec succès.\n");
+        } else {
+            printf("L'étudiant avec l'ID %d n'a pas été trouvé.\n", ID_SUPP_Tetudiant);
+        }
+    } else {
+        printf("Fichier %s non trouvé.\n", file_name);
+    }
+
+    fclose(MS);
+}
+
+//Suppression d'un enregistrement physiquement 
+void Suppression_Enregistrement_physic_co(FILE *MS, int ID_SUPP_Tetudiant, char file_name[30]) {
+
+    BLOC_meta_co F_M;
+    FDmeta me_ta;
+
+    // Ouvrir le fichier en mode lecture/écriture binaire
+    MS = fopen(file_name, "rb+");
+    if (!MS) {
+        perror("Erreur lors de l'ouverture du fichier");
+        return;
+    }
+
+    // Lire les métadonnées principales
+    me_ta = Searchmetadata(MS, file_name);
+    if (strcmp(me_ta.fname, file_name) == 0) { // Fichier trouvé
+
+        BLOC_co buffer;
+        int num_block = -1;
+        int deplacement = -1;
+
+        // Recherche de l'étudiant à supprimer
+        Recherche(MS, ID_SUPP_Tetudiant, &num_block, &deplacement);
+
+        if (num_block != -1 && deplacement != -1) {
+            // Charger le bloc contenant l'étudiant
+            fseek(MS, (num_block - 1) * sizeof(BLOC_co), SEEK_SET);
+            fread(&buffer, sizeof(BLOC_co), 1, MS);
+
+            // Supprimer l'étudiant et compacter le bloc
+            for (int i = deplacement; i < buffer.ne - 1; i++) {
+                buffer.t[i] = buffer.t[i + 1];
+            }
+            buffer.ne--;
+            me_ta.nbEtudian--;
+
+            // Écrire le bloc mis à jour dans le fichier
+            fseek(MS, -sizeof(BLOC_co), SEEK_CUR);
+            fwrite(&buffer, sizeof(BLOC_co), 1, MS);
+
+            // Réorganiser les blocs restants
+            int total_elements = me_ta.nbEtudian;
+            Tetudiant vect[total_elements];
+            int index_vect = 0;
+
+            // Charger tous les blocs en mémoire
+            fseek(MS, (me_ta.adresse  - 1) * sizeof(BLOC_co), SEEK_SET);
+            for (int i = 0; i < me_ta.taille; i++) {
+                fread(&buffer, sizeof(BLOC_co), 1, MS);
+                for (int j = 0; j < buffer.ne; j++) {
+                    vect[index_vect++] = buffer.t[j];
+                }
+            }
+
+            // Réécrire les blocs réorganisés
+            fseek(MS, (me_ta.adresse  - 1) * sizeof(BLOC_co), SEEK_SET);
+            int elements_written = 0;
+            while (total_elements > 0) {
+                if (total_elements > FB) {
+                    buffer.ne = FB;
+                } else {
+                    buffer.ne = total_elements;
+                }
+                for (int i = 0; i < buffer.ne; i++) {
+                    buffer.t[i] = vect[elements_written++];
+                }
+                total_elements -= buffer.ne;
+                fwrite(&buffer, sizeof(BLOC_co), 1, MS);
+            }
+
+            // Mettre à jour les métadonnées
+            me_ta.taille = (me_ta.nbEtudian + FB - 1) / FB; // Nombre de blocs nécessaires
+            MAJMETADATA(MS, me_ta);
+
+            printf("L'étudiant avec ID %d a été supprimé avec succès.\n", ID_SUPP_Tetudiant);
+        } else {
+            printf("L'étudiant avec ID %d n'a pas été trouvé.\n", ID_SUPP_Tetudiant);
+        }
+    } else {
+        printf("Fichier %s non trouvé dans les métadonnées.\n", file_name);
+    }
+
+    // Fermer le fichier
+    fclose(MS);
 }
 
 

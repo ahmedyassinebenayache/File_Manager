@@ -136,32 +136,32 @@ int SortedSearch(BLOC_ch buffer,int ID) {
         return -1;
     }
 }
-void remplissagetriee(Tetudiant T[],int ne){
+void remplissagetriee(Tetudiant **T,int ne){
     for (int i = 0; i <  ne  ; ++i) {
         printf("ID : ");
-        scanf("%d", &T[i].id);
+        scanf("%d", &T[i]->id);
 
         printf("Nom : ");
-        scanf(" %s", &T[i].nom);
+        scanf(" %s", &T[i]->nom);
 
         printf("Prenom : ");
-        scanf("%s",&T[i].prenom);
+        scanf("%s",&T[i]->prenom);
 
         printf("Section : ");
-        scanf("%c",&T[i].sec);
-        T[i].etat= 1;
+        scanf("%c",&T[i]->sec);
+        T[i]->etat= 1;
     }
     for (int i = 0; i < ne; i++) {
         for (int j = i+1; j < ne; ++j) {
-            if(T[i].id>T[j].id){
-                Tetudiant temp ;
+            if(T[i]->id>T[j]->id){
+                Tetudiant *temp ;
                 temp=T[j];
                 T[j]=T[i];
                 T[i]=temp;
             }
         }
     }
-}
+} 
 void Creer_du_fichiertrieechainee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant){
     // creation de metadonne
     FDmeta meta ;
@@ -176,8 +176,8 @@ void Creer_du_fichiertrieechainee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant)
 
     // ajouter les etudiants dans le fichier
     rewind(f) ;
-    Tetudiant A[meta.nbEtudiant];
-    remplissagetriee(A,meta.nbEtudiant);
+    Tetudiant *A= (Tetudiant*)malloc(meta.nbEtudiant* sizeof(Tetudiant));
+    remplissagetriee(&A,meta.nbEtudiant);
     int size =meta.nbEtudiant;
     BLOC_ch buffer;
     int j=0;
@@ -193,6 +193,7 @@ void Creer_du_fichiertrieechainee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant)
         buffer.t[i]=A[j+i];
     }
     fwrite(&buffer, sizeof(BLOC_ch),1,f);
+    free(A);
 }
 void creer_un_fichier_chainee_non_triee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant){
     // creation de metadonne

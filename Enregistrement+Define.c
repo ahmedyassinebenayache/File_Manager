@@ -30,8 +30,7 @@ typedef struct BLOC_meta BLOC_meta;
 struct BLOC_meta
 {
     FDmeta t[FB];
-    int ne;
-    int next ;    
+    int ne;  
 };
 
 typedef struct BLOC_co BLOC_co;

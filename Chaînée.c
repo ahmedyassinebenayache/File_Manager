@@ -55,6 +55,80 @@ typedef struct Position{
     int nbrbloc;
     int mov;
 }Position;
+
+
+void Initialize_Disk_Co(FILE *ms){
+
+ int Allocation_Table[NbBloc];
+
+ for(int i=0; i<NbBloc; i++){
+    Allocation_Table[i] = 0;  //marquer tous les blocs comme libres
+ }
+ fseek(ms,0,SEEK_SET);
+
+ fwrite(Allocation_Table,sizeof(int),NbBloc,ms); //écrire la table d'allocation dans le premier bloc
+                            
+  FDmeta meta;             //valeurs par défaut pour les blocs métadonnées
+  BLOC_meta meta_bloc;
+  strcpy(meta.FDnom,"");
+  meta.taille = 0;
+  meta.nbEtudiant = 0;
+  meta.adresse = -1;
+  meta.modeglobal = 0;
+  meta.modeinterne = 0;
+ fseek(ms,NbBloc * sizeof(int) ,SEEK_SET);  //déplacer le curseur vers le bloc suivant
+ //valeurs par défaut pour les blocs métadonnées
+ meta_bloc.ne = 0;
+ for(int j=0; j<NbBloc; j++){
+
+ for(int i= 0; i<FB; i++){   
+
+  meta_bloc.t[i] = meta;
+ }
+ fwrite(&meta_bloc ,sizeof(meta_bloc), 1,ms); //écrire les blocs métadonnées dans MS
+ }
+ }
+
+ void update_Allocation_Table(FILE *ms,int bloc_adress , int b){ 
+    int Allocation_Table[NbBloc];                              
+    fseek(ms,0,SEEK_SET);                                     // Déplace le pointeur de fichier au début du fichier
+
+    fread(Allocation_Table,NbBloc *sizeof(int),1,ms);
+
+    Allocation_Table[bloc_adress] = b;   // Met à jour la table d'allocation à l'adresse du bloc spécifiée
+
+    fseek(ms,0,SEEK_SET);                                    // Déplace le pointeur de fichier au début du fichier
+
+    fwrite(Allocation_Table, NbBloc * sizeof(int),1,ms);       // Écrit la table d'allocation mise à jour dans le fichier
+
+ }
+
+void empty_MS_Co(FILE *ms){
+    Initialize_Disk_Co(ms);
+}
+int Manage_Storage_Space_Ch(FILE *ms ,int num_Etudiant){
+    int num_Blocs = ceil((double)num_Blocs / FB);
+    int Allocation_Table[NbBloc];
+    fseek(ms, 0 ,SEEK_SET);
+
+    fread(Allocation_Table,NbBloc * sizeof(int),1,ms); //lire la table d'allocation depuis MS
+    int counter = 0;
+    for(int i = 0; i<NbBloc; i++){     //compter les blocs libres
+        if(Allocation_Table[i] == 0){
+            counter ++;
+        } if(counter == num_Blocs) { break; }
+    
+    }
+    if(counter < num_Blocs){  //si les blocs sont insuffisants
+        printf("MS IS FULL"); 
+         return 1;
+        
+    }else{
+        return 0;            //les blocs sont suffisants, quitter avec 0
+    }
+}
+
+
 // si on trouve un espace vide allors on le retourne (apres chaque allocation il faudra metre a jour la tablle d'allocation)
 int allouer (FILE *ms ){
     int k=-1 ,table[NbBloc]  ;

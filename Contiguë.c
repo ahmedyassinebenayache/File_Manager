@@ -996,3 +996,51 @@ void supprime_fichier_contigue(FILE *ms, char nom[20]) {
     printf("Suppression du fichier terminée.\n");
     printf("Nombre de blocs libérés : %d\n", numBlocks);
 }
+
+void defragmentation_co(int adr_premierbloc , int nbr_blocs, FILE *ms){
+    Tetudiant rec;
+    BLOC_co buffer1;
+    BLOC_co buffer2;
+    int k = 0;
+    int m = 0;
+	fseek(ms,(NbBlocmeta + adr_premierbloc) * sizeof(BLOC_co) + NbBloc * sizeof(int) ,SEEK_SET);
+	Tetudiant *temp;
+    temp = (Tetudiant *)malloc( nbr_blocs*FB* sizeof(Tetudiant)); // on stock les enregistrements non supprimés dans un tableau
+	for(int i = 0; i < nbr_blocs;i++){
+	    fread(&buffer1, sizeof(BLOC_co),1,ms);
+	    for(int j =  0; j <FB; j++ ) {
+	        if(buffer1.t[j].etat == 1){
+	         	strcpy(*temp[k].nom,buffer1.t[j].nom);
+                strcpy(temp[k].prenom, buffer1.t[j].prenom);
+                strcpy(temp[k].sec,buffer1.t[j].sec);
+	         	temp[k].id = buffer1.t[j].id;
+	         	k++;
+			}
+            BLOC_co vide;
+			fseek(ms, -1 * sizeof(BLOC_co), SEEK_CUR);
+			fwrite(&vide , sizeof(BLOC_co) , 1,ms);
+		}
+	}
+	fseek(ms,(NbBlocmeta + adr_premierbloc) * sizeof(BLOC_co) + NbBloc * sizeof(int) ,SEEK_SET);
+	int nouveau_nbr_blocs = k % FB; // on calcule le nombre de bloc suite a la defragmentaion ou k est le nombre d'enregistrements non supprimés
+	for(int i = 0; i < nouveau_nbr_blocs;i++){
+		    	
+		for(int j = 0; j < FB ;j++){       
+		    strcpy(buffer2.t[j].nom,temp[m].nom);  // on copie les enregistrement du tableau dans les blocs avce un FB = 5 
+            strcpy(buffer2.t[j].prenom,temp[m].prenom);
+            strcpy(buffer2.t[j].prenom,temp[m].sec);
+	        buffer2.t[j].id = temp[m].id;
+	        m++;
+		}
+		fwrite(&buffer2 , sizeof(BLOC_ch) ,1,ms);
+	}
+	if ( m < k) {  // verifie si il reste des enregistrements dans le tableau ou k est la taille du tableau
+		for(int j = 0; j < k - m ;j++){  
+		    strcpy(buffer2.t[j].nom,temp[m].nom); *
+            strcpy(buffer2.t[j].prenom,temp[m].prenom);
+            strcpy(buffer2.t[j].prenom,temp[m].sec);
+	        buffer2.t[j].id = temp[m].id;
+	        m++;
+		}
+    }	
+}

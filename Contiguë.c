@@ -9,61 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-// dans le pire des cas on aura chaque bloc ayant une metadonne
-#define FB 5
-#define NbBloc 50
-#define NbBlocmeta 10
-#define Nbmeta 50
-
-typedef struct Tetudiant Tetudiant;
-struct Tetudiant
-{
-    int etat ; 
-    int id;
-    char nom[20];
-    char prenom[20];
-    char sec ;
-};
-typedef struct FDmeta FDmeta;
-struct FDmeta
-{
-    char FDnom[20];
-    int taille;
-    int nbEtudiant;
-    int adresse ;
-    int modeglobal ; // 0 : contigue, 1 chainee
-    int modeinterne ; // 0 : non triee , 1 : triee
-
-};
-
-typedef struct BLOC_ch BLOC_ch;
-struct BLOC_ch
-{
-    Tetudiant t[FB];
-    int ne;
-    int next ;
-};
-typedef struct BLOC_meta_ch BLOC_meta_ch;
-struct BLOC_meta_ch
-{
-    FDmeta t[FB];
-    int ne;
-    int next ;    
-};
-
-typedef struct BLOC_meta BLOC_meta;
-struct BLOC_meta
-{
-    FDmeta t[FB];
-    int ne; 
-};
-
-typedef struct BLOC_co BLOC_co;
-struct BLOC_co
-{
-    Tetudiant t[FB];
-    int ne;
-};
 
 
 
@@ -406,77 +351,58 @@ void Charger_les_élèves_triée_dans_fichier_de_donnée(FILE *f, char fileName[
 
 
 
-
-
-void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int taille,  int internalmode) {//0 : non triée,   1  : triée
+void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int taille, int internalmode) {
+   
     FDmeta fileMeta;
     BLOC_meta BuferrMeta;
-     int tableAllocation[NbBloc];
-  
-    
-    
-   
-    fseek(ms, NbBloc*sizeof(int), SEEK_SET);
-    int trouv=0,k,i,taille ;int startBlock;
-    // on cherche la une metadonne vide dans la MS 
-    while(!trouv){
-    fread(&BuferrMeta,sizeof(BLOC_co),1,ms); 
-    for ( i = 0; i < FB; i++)
-    {
-        if (BuferrMeta.t[i].taille==0 ){
-            trouv = 1 ;
+    int tableAllocation[NbBloc];
+    fseek(ms, 0, SEEK_SET);
+    fread(tableAllocation, sizeof(int), NbBloc, ms);
 
+    fseek(ms, NbBloc * sizeof(int), SEEK_SET);
+    int trouv = 0;
+    int startBlock = -1; // Initialiser startBlock
+    for (int j = 0; j < NbBlocmeta; j++) { // Correction: Boucle for pour parcourir tous les blocs méta
+        fread(&BuferrMeta, sizeof(BLOC_meta), 1, ms); // Correction: sizeof(BLOC_meta)
+        for (int i = 0; i < FB; i++) {
+            if (BuferrMeta.t[i].taille == 0) {
+                trouv = 1;
+                fileMeta.nbEtudiant = ceil((double)taille / FB);
+                fileMeta.taille = taille;
+                fileMeta.modeglobal = 0;
+                fileMeta.modeinterne = internalmode;
+                strcpy(fileMeta.FDnom, FDnom);
 
-            // Écrit les métadonnées du fichier dans  une meta variable
-   
-             fileMeta.nbEtudiant = ceil((double)taille / FB);// Calculer le nombre de blocs requis
-             fileMeta.taille = taille;
-             fileMeta.modeglobal = 0;
-             fileMeta.modeinterne=internalmode;
-
-             strcpy(fileMeta.FDnom,FDnom);
-
-  
-            //trouver des  BLOCS_co vides Pour premier bloc
-            
                 allouer_co(&startBlock, tableAllocation, fileMeta.nbEtudiant);
-               if (startBlock == -1) {
-               printf("Erreur : Pas assez d'espace libre pour charger le fichier.\n");
-               return;
+                if (startBlock == -1) {
+                    printf("Erreur : Pas assez d'espace libre pour charger le fichier.\n");
+                    return;
                 }
 
-             fileMeta.adresse = startBlock;
-            
+                fileMeta.adresse = startBlock;
 
-              // Écrit les métadonnées du fichier dans le ms fichier
+                BuferrMeta.t[i] = fileMeta; // Correction: Écrire à l'index i
+                BuferrMeta.ne++;
 
+                fseek(ms, NbBloc * sizeof(int) + j * sizeof(BLOC_meta), SEEK_SET); // Correction: Calcul de l'offset
+                fwrite(&BuferrMeta, sizeof(BLOC_meta), 1, ms); // Correction: sizeof(BLOC_meta)
 
-             BuferrMeta.t[BuferrMeta.ne+1]=fileMeta;
-             BuferrMeta.ne++;
-   
-            fseek(ms, -1*sizeof(BLOC_co), SEEK_CUR);
-            fwrite(&BuferrMeta,sizeof(BLOC_co),1,ms);
-          break;
+                goto end_create; // Sortir des boucles imbriquées
+            }
         }
-        }
+    }
+    if(!trouv) printf("Il n'y a pas assez d'espace (dans les blocMeta) pour créer le fichier'%s'\n", FDnom);
+    end_create: // Label pour le goto
+    if (trouv){
+            if (internalmode == 0)
+                Charger_les_élèves_non_triée_dans_fichier_de_donnée(f, FDnom, startBlock, ceil((double)taille / FB), taille);
+            else
+                Charger_les_élèves_triée_dans_fichier_de_donnée(f, FDnom, startBlock, ceil((double)taille / FB), taille);
 
-
-    
-
-    
-    // Chargement des enregistrements
-    if (internalmode == 0)
-        Charger_les_élèves_non_triée_dans_fichier_de_donnée(f, FDnom, startBlock,  ceil((double)taille / FB), taille);
-    else
-       Charger_les_élèves_triée_dans_fichier_de_donnée(f, FDnom, startBlock,  ceil((double)taille / FB), taille);
-
-
-
-printf("Le fichier '%s' a été créé avec succès.\n", FDnom);
+            printf("Le fichier '%s' a été créé avec succès.\n", FDnom);
+    }
 }
 
-printf("Il n'y a pas assez d'espace (dans les blocMeta) pour créer le fichier'%s'\n", FDnom);
-   }
 
 
 
@@ -786,7 +712,7 @@ void Suppression_Enregistrement_logique_co(FILE *MS, int ID_SUPP_Tetudiant, char
         int num_block = -1;
         int deplacement = -1;
 
-        Recherche(MS, ID_SUPP_Tetudiant, &num_block, &deplacement);
+         Recherche_co(MS, ID_SUPP_Tetudiant, &num_block, &deplacement);
         if (num_block != -1 && deplacement != -1) {
             // Positionnement au bloc concerné
             fseek(MS, (num_block - 1) * sizeof(BLOC_co), SEEK_SET);
@@ -982,7 +908,7 @@ void supprime_fichier_contigue(FILE *ms, char nom[20]) {
     // Mettre à jour la table d'allocation (libérer les blocs du fichier)
     
     for (int j = startAddress; j < startAddress + numBlocks; j++) {
-         update_Allocation_table(ms,j , 0);// Marquer les blocs comme libres
+        update_Allocation_Table_co(ms,j , 0);// Marquer les blocs comme libres
     }
 
     // Mettre à jour les métadonnées
@@ -1053,3 +979,6 @@ void defragmentation_co(int adr_premierbloc , int nbr_blocs, FILE *ms){
 	}
     }	
 }
+
+
+

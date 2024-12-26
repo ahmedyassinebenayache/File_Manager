@@ -267,13 +267,13 @@ void MAJMETADATA(FILE *ms, FDmeta M){
             printf("Élève %d:\n", recordIndex + 1);
             record.etat = 1; // Élève existant
             printf("ID: ");
-            scane("%d", &record.id);
+            scanf("%d", &record.id);
             printf("Nom: ");
-            scane(" %[^\n]", record.nom);
+            scanf(" %[^\n]", record.nom);
             printf("Prénom: ");
-            scane(" %[^\n]", record.prenom);
+            scanf(" %[^\n]", record.prenom);
             printf("Section: ");
-            scane(" %c", &record.sec);
+            scanf(" %c", &record.sec);
 
             Buferr.t[j] = record;
             Buferr.ne++;
@@ -309,13 +309,13 @@ void Charger_les_élèves_triée_dans_fichier_de_donnée(FILE *f, char fileName[
         tTetudiant[i].etat = 1; // Élève existant
         printf("Élève %d:\n", i + 1);
         printf("ID: ");
-        scane("%d", &tTetudiant[i].id);
+        scanf("%d", &tTetudiant[i].id);
         printf("Nom: ");
-        scane(" %[^\n]", tTetudiant[i].nom);
+        scanf(" %[^\n]", tTetudiant[i].nom);
         printf("Prénom: ");
-        scane(" %[^\n]", tTetudiant[i].prenom);
+        scanf(" %[^\n]", tTetudiant[i].prenom);
         printf("Section: ");
-        scane(" %c", &tTetudiant[i].sec);
+        scanf(" %c", &tTetudiant[i].sec);
     }
 
     // tri des élèves
@@ -462,7 +462,7 @@ void chargerFichier_co(FILE *ms,FILE *f, char fileName[20], int taille ) {
 
     // Mise à jour de la table d'allocation
     for (int i = startBlock; i < startBlock + nbEtudiant; i++) {
-         update_Allocation_table(ms,i , 1)  ;
+         update_Allocation_Table_co(ms,i , 1)  ;
     }
 
 }
@@ -476,18 +476,18 @@ void insertion_co(FILE *MS, char file_name[30]){
 
     printf("Entrer les ineormations de votre nouveau etudiant\n");    
     printf("Le nom\n");
-    scane("%s",nouv_Tetudiant.nom);        
+    scanf("%s",nouv_Tetudiant.nom);        
     printf("Le prenom\n");
-    scane("%s",nouv_Tetudiant.prenom);
+    scanf("%s",nouv_Tetudiant.prenom);
     printf("L'identifiant\n");
-    scane("%d",&nouv_Tetudiant.id);
+    scanf("%d",&nouv_Tetudiant.id);
     printf("La section\n");
-    scane("%c",&nouv_Tetudiant.sec);
+    scanf("%c",&nouv_Tetudiant.sec);
     nouv_Tetudiant.etat = 1;    
 
     
     rewind(MS);
-    META = Searchmetadata(MS,&file_name);
+    META = Searchmetadata(MS,file_name);
 
     if(strcmp(file_name,META.FDnom) == 0){
         int alloc_table[NbBloc];
@@ -759,7 +759,7 @@ void Suppression_Enregistrement_physic_co(FILE *MS, int ID_SUPP_Tetudiant, char 
         int deplacement = -1;
 
         // Recherche de l'étudiant à supprimer
-        Recherche(MS, ID_SUPP_Tetudiant, &num_block, &deplacement);
+         Recherche_co(MS, ID_SUPP_Tetudiant, &num_block, &deplacement);
 
         if (num_block != -1 && deplacement != -1) {
             // Charger le bloc contenant l'étudiant
@@ -947,7 +947,7 @@ void defragmentation_co(int adr_premierbloc , int nbr_blocs, FILE *ms){
 	fread(&buffer1, sizeof(BLOC_co),1,ms);
 	for(int j =  0; j <FB; j++ ) {
 	        if(buffer1.t[j].etat == 1){
-	         	strcpy(*temp[k].nom,buffer1.t[j].nom);
+	         	strcpy(temp[k].nom,buffer1.t[j].nom);
                 	strcpy(temp[k].prenom, buffer1.t[j].prenom);
                 	strcpy(temp[k].sec,buffer1.t[j].sec);
 	         	temp[k].id = buffer1.t[j].id;

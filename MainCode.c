@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Chaînée.h"   
-#include "Contiguë.h"   
+#include "contigue.h"   
 
 // Prototypes des fonctions
 void afficherMenu();

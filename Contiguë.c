@@ -1,62 +1,10 @@
+#include "contigue.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-// dans le pire des cas on aura chaque bloc ayant une metadonne
-#define FB 5
-#define NbBloc 50
-#define NbBlocmeta 10
-#define Nbmeta 50
 
-typedef struct Tetudiant Tetudiant;
-struct Tetudiant
-{
-    int etat ; 
-    int id;
-    char nom[20];
-    char prenom[20];
-    char sec ;
-};
-
-typedef struct BLOC_ch BLOC_ch;
-struct BLOC_ch
-{
-    Tetudiant t[FB];
-    int ne;
-    int next ;
-};
-typedef struct BLOC_meta_ch BLOC_meta_ch;
-struct BLOC_meta_ch
-{
-    FDmeta t[FB];
-    int ne;
-    int next ;    
-};
-
-typedef struct BLOC_meta BLOC_meta;
-struct BLOC_meta
-{
-    FDmeta t[FB];
-    int ne; 
-};
-
-typedef struct BLOC_co BLOC_co;
-struct BLOC_co
-{
-    Tetudiant t[FB];
-    int ne;
-};
-typedef struct FDmeta FDmeta;
-struct FDmeta
-{
-    char FDnom[20];
-    int taille;
-    int nbEtudiant;
-    int adresse ;
-    int modeglobal ; // 0 : contigue, 1 chainee
-    int modeinterne ; // 0 : non triee , 1 : triee
-
-};
 
 
 
@@ -96,7 +44,7 @@ void Initialize_Disk_Co(FILE *ms){
 
  }
 
- void update_Allocation_Table(FILE *ms,int bloc_adress , int b){ 
+ void update_Allocation_Table_co(FILE *ms,int bloc_adress , int b){ 
     int Allocation_Table[NbBloc];                              
     fseek(ms,0,SEEK_SET);                                     // Déplace le pointeur de fichier au début du fichier
 
@@ -403,7 +351,7 @@ void Charger_les_élèves_triée_dans_fichier_de_donnée(FILE *f, char fileName[
 
 
 
-void creer_un_fichier(FILE *ms, FILE *f, char FDnom[20], int taille,  int internalmode) {//0 : non triée,   1  : triée
+void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int taille,  int internalmode) {//0 : non triée,   1  : triée
     FDmeta fileMeta;
     BLOC_meta BuferrMeta;
      int tableAllocation[NbBloc];

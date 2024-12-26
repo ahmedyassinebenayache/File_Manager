@@ -24,6 +24,17 @@ struct Tetudiant
     char prenom[20];
     char sec ;
 };
+typedef struct FDmeta FDmeta;
+struct FDmeta
+{
+    char FDnom[20];
+    int taille;
+    int nbEtudiant;
+    int adresse ;
+    int modeglobal ; // 0 : contigue, 1 chainee
+    int modeinterne ; // 0 : non triee , 1 : triee
+
+};
 
 typedef struct BLOC_ch BLOC_ch;
 struct BLOC_ch
@@ -53,17 +64,7 @@ struct BLOC_co
     Tetudiant t[FB];
     int ne;
 };
-typedef struct FDmeta FDmeta;
-struct FDmeta
-{
-    char FDnom[20];
-    int taille;
-    int nbEtudiant;
-    int adresse ;
-    int modeglobal ; // 0 : contigue, 1 chainee
-    int modeinterne ; // 0 : non triee , 1 : triee
 
-};
 
 
 void Initialize_Disk_Co(FILE *ms){

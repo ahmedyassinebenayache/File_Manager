@@ -1001,6 +1001,12 @@ void defragmentation_co(int adr_premierbloc , int nbr_blocs, FILE *ms){
     Tetudiant rec;
     BLOC_co buffer1;
     BLOC_co buffer2;
+    BLOC_co vide;
+    strcpy(vide.T.nom,"");
+    strcpy(vide.T.Prenom,"");
+    strcpy(vide.T.sec;"");
+    vide.T.id = 0;
+    vide.ne = 0;
     int k = 0;
     int m = 0;
     fseek(ms,(NbBlocmeta + adr_premierbloc) * sizeof(BLOC_co) + NbBloc * sizeof(int) ,SEEK_SET);
@@ -1015,8 +1021,7 @@ void defragmentation_co(int adr_premierbloc , int nbr_blocs, FILE *ms){
                 	strcpy(temp[k].sec,buffer1.t[j].sec);
 	         	temp[k].id = buffer1.t[j].id;
 	         	k++;
-		}
-            	BLOC_co vide;
+		}            	
 		fseek(ms, -1 * sizeof(BLOC_co), SEEK_CUR);
 		fwrite(&vide , sizeof(BLOC_co) , 1,ms);
 	}

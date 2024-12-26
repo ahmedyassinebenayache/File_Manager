@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Chaînée.h"    // Include the header for Chaînée functions
-#include "Contiguë.h"   // Include the header for Contiguë functions
+#include "Chaînée.h"   
+#include "Contiguë.h"   
 
 // Prototypes des fonctions
 void afficherMenu();

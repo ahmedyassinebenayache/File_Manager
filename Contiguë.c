@@ -1002,10 +1002,10 @@ void defragmentation_co(int adr_premierbloc , int nbr_blocs, FILE *ms){
     BLOC_co buffer1;
     BLOC_co buffer2;
     BLOC_co vide;
-    strcpy(vide.T.nom,"");
-    strcpy(vide.T.Prenom,"");
-    strcpy(vide.T.sec;"");
-    vide.T.id = 0;
+    strcpy(vide.t->nom,"");
+    strcpy(vide.t->prenom,"");
+    strcpy(vide.t->sec,"");
+    vide.t->id = 0;
     vide.ne = 0;
     int k = 0;
     int m = 0;

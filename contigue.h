@@ -35,7 +35,7 @@ struct BLOC_ch
 };
 typedef struct BLOC_meta_ch BLOC_meta_ch;
 struct BLOC_meta_ch
-{
+{ 
     FDmeta t[FB];
     int ne;
     int next ;    

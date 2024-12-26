@@ -55,7 +55,7 @@ typedef struct Position{
 }Position;
 
 
-void Initialize_Disk_Co(FILE *ms){
+void Initialize_Disk_Ch(FILE *ms){
 
     int Allocation_Table[NbBloc];
 
@@ -101,7 +101,7 @@ void update_Allocation_Table(FILE *ms,int bloc_adress , int b){
 
 }
 
-void empty_MS_Co(FILE *ms){
+void empty_MS_Ch(FILE *ms){
     Initialize_Disk_Co(ms);
 }
 int Manage_Storage_Space_Ch(FILE *ms ,int num_Etudiant){

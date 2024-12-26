@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-// dans le pire des cas on aura chaque bloc ayant une metadonne
+#include <math.h> // dans le pire des cas on aura chaque bloc ayant une metadonne
 #define FB 5
 #define NbBloc 50
 #define NbBlocmeta 10
@@ -53,7 +52,6 @@ typedef struct Position{
     int nbrbloc;
     int mov;
 }Position;
-
 
 void Initialize_Disk_Ch(FILE *ms){
 
@@ -126,7 +124,6 @@ int Manage_Storage_Space_Ch(FILE *ms ,int num_Etudiant){
     }
 }
 
-
 // si on trouve un espace vide allors on le retourne (apres chaque allocation il faudra metre a jour la tablle d'allocation)
 int allouer (FILE *ms ){
     int k=-1 ,table[NbBloc]  ;
@@ -161,6 +158,7 @@ void Addmetadata(FILE *ms, FDmeta M){
     }
     rewind(ms);
 }
+
 Position Searchmetadata(FILE *ms, FDmeta M){
     BLOC_meta meta;
     fseek(ms, NbBloc* sizeof(int),SEEK_SET);
@@ -181,6 +179,7 @@ Position Searchmetadata(FILE *ms, FDmeta M){
     rewind(ms);
     return y;
 }
+
 int SortedSearch(BLOC_ch buffer,int ID) {
     if (buffer.t[buffer.ne - 1].id < ID || ID<buffer.t[0].id) {
         return -1;
@@ -208,6 +207,7 @@ int SortedSearch(BLOC_ch buffer,int ID) {
         return -1;
     }
 }
+
 void remplissagetriee(Tetudiant **T,int ne){
     for (int i = 0; i <  ne  ; ++i) {
         printf("ID : ");
@@ -234,6 +234,7 @@ void remplissagetriee(Tetudiant **T,int ne){
         }
     }
 }
+
 void Creer_du_fichiertrieechainee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant){
     // creation de metadonne
     FDmeta meta ;
@@ -267,6 +268,7 @@ void Creer_du_fichiertrieechainee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant)
     fwrite(&buffer, sizeof(BLOC_ch),1,f);
     free(A);
 }
+
 void creer_un_fichier_chainee_non_triee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant){
     // creation de metadonne
     FDmeta meta ;
@@ -298,8 +300,6 @@ void creer_un_fichier_chainee_non_triee(FILE *ms ,FILE *f,char nom[20],int nbEtu
                 fwrite(&bloCmeta,sizeof(BLOC_ch),1,ms);
                 // mise a jour de la tablle
                 update_Allocation_Table(ms,meta.adresse,1) ;
-
-
             }
         }
 
@@ -335,6 +335,7 @@ void creer_un_fichier_chainee_non_triee(FILE *ms ,FILE *f,char nom[20],int nbEtu
         fwrite(&buffer, sizeof(BLOC_ch), 1, f);
     }
 }
+
 void chargement_fichier_chainee(FILE *ms,FILE *f,char nom[20]){
     fseek(ms, NbBloc*sizeof(int), SEEK_SET);
     BLOC_meta bloCmeta ;
@@ -351,8 +352,6 @@ void chargement_fichier_chainee(FILE *ms,FILE *f,char nom[20]){
             {
                 trouv=1,meta=bloCmeta.t[i] ;
             }
-
-
         }
 
     }while (!trouv) ;
@@ -380,6 +379,7 @@ void chargement_fichier_chainee(FILE *ms,FILE *f,char nom[20]){
         i++ ;
     }
 }
+
 Position Recherche_Sur_un_fichier_chainee_triee(int ID,FILE *ms,char nom[20]){
     int z=sizeof(int)*NbBloc;
     fseek(ms,z,SEEK_SET);
@@ -413,6 +413,7 @@ Position Recherche_Sur_un_fichier_chainee_triee(int ID,FILE *ms,char nom[20]){
     y.mov=-1;
     return y;
 }
+
 void ajouter_etudiant_fichier_chainee_non_triee(FILE *ms,FILE *f ,char nom[20]){
     Tetudiant etudiant ;
     BLOC_ch buffer2 ;
@@ -507,12 +508,9 @@ void ajouter_etudiant_fichier_chainee_non_triee(FILE *ms,FILE *f ,char nom[20]){
         // insertion en fichier F
         fseek(f,(meta.taille)*sizeof(BLOC_ch), SEEK_SET);
         fwrite(&buffer1,sizeof(BLOC_ch),1,f);
-
-
     }
-
-
 }
+
 void insertiondansunfichierTriee(FILE *ms, FDmeta m, Tetudiant x) {
     // Move the file pointer to the starting address of the linked list in the file
     fseek(ms, NbBloc * sizeof(int) + (NbBlocmeta + m.adresse) * sizeof(BLOC_ch), SEEK_SET);
@@ -608,6 +606,7 @@ void insertiondansunfichierTriee(FILE *ms, FDmeta m, Tetudiant x) {
         }
     }
 }
+
 void recherche_fichier_chainee_non_triee(FILE *ms, char nom[20], int id, int p[2], FILE *f){
     fseek(ms, NbBloc * sizeof(int), SEEK_SET);
     BLOC_meta bloCmeta;
@@ -657,6 +656,7 @@ void recherche_fichier_chainee_non_triee(FILE *ms, char nom[20], int id, int p[2
 
     }
 }
+
 void suppression_physique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id) {
     BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
@@ -744,6 +744,7 @@ void suppression_physique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int i
     printf("Nombre de blocs mis à jour : %d\n", blocCount);
     free(arr);
 }
+
 void renomer_fichier_chainee(FILE *ms, char nom[20], char nouveaunom[20]) {
     BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
@@ -773,6 +774,7 @@ void renomer_fichier_chainee(FILE *ms, char nom[20], char nouveaunom[20]) {
     fseek(ms, -1 * sizeof(BLOC_ch), SEEK_SET);
     fwrite(&bloCmeta, sizeof(BLOC_ch), 1, ms);
 }
+
 void supprime_fichier_chainee(FILE *ms, char nom[20], char nouveaunom[20]) {
     BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
@@ -822,6 +824,7 @@ void supprime_fichier_chainee(FILE *ms, char nom[20], char nouveaunom[20]) {
     fwrite(&bloCmeta, sizeof(BLOC_ch), 1, ms);
     printf("Suppression du fichier terminée.\n");
 }
+
 void suppression_logique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id) {
     BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
@@ -881,6 +884,7 @@ void suppression_logique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id
         printf("Nombre d'étudiants mis à jour : %d\n", meta.nbEtudiant);
     }
 }
+
 void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id) {
     BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;

@@ -102,7 +102,7 @@ void update_Allocation_Table(FILE *ms,int bloc_adress , int b){
 }
 
 void empty_MS_Ch(FILE *ms){
-    Initialize_Disk_Co(ms);
+    Initialize_Disk_Ch(ms);
 }
 int Manage_Storage_Space_Ch(FILE *ms ,int num_Etudiant){
     int num_Blocs = ceil((double)num_Blocs / FB);

@@ -1,4 +1,4 @@
-#include "contigue.h"
+#include "contiguë.h"
 
 
 

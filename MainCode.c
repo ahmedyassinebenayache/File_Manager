@@ -6,18 +6,6 @@
 
 // Prototypes des fonctions
 void afficherMenu();
-void initialiserMemoire();
-void creerFichier();
-void afficherEtatMemoire();
-void afficherMetadonneesFichier();
-void rechercherEnregistrementParID();
-void insererEnregistrement();
-void supprimerEnregistrement();
-void defragmenterFichier();
-void renommerFichier();
-void supprimerFichier();
-void compacterMemoire();
-void viderMemoire();
 
 int main() {
     int choix;

@@ -109,7 +109,7 @@ int Manage_Storage_Space_Ch(FILE *ms ,int num_Etudiant){
     int Allocation_Table[NbBloc];
     fseek(ms, 0 ,SEEK_SET);
 
-    fread(Allocation_Table,NbBloc * sizeof(int),1,ms); //lire la table d'allocation depuis MS
+    fread(&Allocation_Table,sizeof(int),NbBloc,ms); //lire la table d'allocation depuis MS
     int counter = 0;
     for(int i = 0; i<NbBloc; i++){     //compter les blocs libres
         if(Allocation_Table[i] == 0){

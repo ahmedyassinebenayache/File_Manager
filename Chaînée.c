@@ -91,13 +91,13 @@ void update_Allocation_Table(FILE *ms,int bloc_adress , int b){
     int Allocation_Table[NbBloc];
     fseek(ms,0,SEEK_SET);                                     // Déplace le pointeur de fichier au début du fichier
 
-    fread(Allocation_Table,NbBloc *sizeof(int),1,ms);
+    fread(&Allocation_Table,sizeof(int),NbBloc,ms);
 
     Allocation_Table[bloc_adress] = b;   // Met à jour la table d'allocation à l'adresse du bloc spécifiée
 
     fseek(ms,0,SEEK_SET);                                    // Déplace le pointeur de fichier au début du fichier
 
-    fwrite(Allocation_Table, NbBloc * sizeof(int),1,ms);       // Écrit la table d'allocation mise à jour dans le fichier
+    fwrite(&Allocation_Table,sizeof(int),NbBloc,ms);       // Écrit la table d'allocation mise à jour dans le fichier
 
 }
 

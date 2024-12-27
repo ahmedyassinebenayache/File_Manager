@@ -735,7 +735,7 @@ void renomer_fichier_chainee(FILE *ms, char nom[20], char nouveaunom[20]) {
     fwrite(&bloCmeta, sizeof(BLOC_ch), 1, ms);
 }
 
-void supprime_fichier_chainee(FILE *ms, char nom[20], char nouveaunom[20]) {
+void supprime_fichier_chainee(FILE *ms, char nom[20]) {
     BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;

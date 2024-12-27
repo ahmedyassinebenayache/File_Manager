@@ -74,7 +74,7 @@ void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int taille, int inte
  
 
 
-void chargerFichier_co(FILE *ms, FILE *f, char fileName[20], int taille);
+void chargerFichier_co(FILE *ms, FILE *f, char fileName[20]);
 void insertion_co(FILE *MS, char file_name[30]);
 void Recherche_co(FILE *MS, int id_Tetudiant, int *num_block, int *deplacement);
 void Suppression_Enregistrement_logique_co(FILE *MS, int ID_SUPP_Tetudiant, char file_name[30]);

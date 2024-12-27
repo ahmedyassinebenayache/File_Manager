@@ -406,7 +406,7 @@ void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int taille, int inte
 /**
  * Fonction pour charger un fichier
  */
-void chargerFichier_co(FILE *ms,FILE *f, char fileName[20], int taille ) {
+void chargerFichier_co(FILE *ms,FILE *f, char fileName[20] ) {
     int tableAllocation[NbBloc];
     BLOC_meta BuferrMeta;
     BLOC_co Buferr;

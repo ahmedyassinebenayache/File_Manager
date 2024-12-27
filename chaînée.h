@@ -83,6 +83,6 @@ void chargement_fichier_chainee(FILE *ms,FILE *f,char nom[20]);
 void suppression_physique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id);
 void suppression_logique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id);
 void renomer_fichier_chainee(FILE *ms, char nom[20], char nouveaunom[20]);
-void supprime_fichier_chainee(FILE *ms, char nom[20], char nouveaunom[20]);
+void supprime_fichier_chainee(FILE *ms, char nom[20]);
 void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id);
 

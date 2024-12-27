@@ -64,7 +64,7 @@ void Initialize_Disk_Ch(FILE *ms){
     }
     fseek(ms,0,SEEK_SET);
 
-    fwrite(Allocation_Table,sizeof(int),NbBloc,ms); //écrire la table d'allocation dans le premier bloc
+    fwrite(&Allocation_Table,sizeof(int),NbBloc,ms); //écrire la table d'allocation dans le premier bloc
 
     FDmeta meta;             //valeurs par défaut pour les blocs métadonnées
     BLOC_meta meta_bloc;
@@ -77,13 +77,13 @@ void Initialize_Disk_Ch(FILE *ms){
     fseek(ms,NbBloc * sizeof(int) ,SEEK_SET);  //déplacer le curseur vers le bloc suivant
     //valeurs par défaut pour les blocs métadonnées
     meta_bloc.ne = 0;
-    for(int j=0; j<NbBloc; j++){
+    for(int j=0; j<NbBlocmeta; j++){
 
         for(int i= 0; i<FB; i++){
 
             meta_bloc.t[i] = meta;
         }
-        fwrite(&meta_bloc ,sizeof(meta_bloc), 1,ms); //écrire les blocs métadonnées dans MS
+        fwrite(&meta_bloc ,sizeof(BLOC_ch), 1,ms); //écrire les blocs métadonnées dans MS
     }
 }
 

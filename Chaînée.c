@@ -4,52 +4,7 @@
 #include <math.h>
 #include "chaînée.h"
 // dans le pire des cas on aura chaque bloc ayant une metadonne
-#define FB 5
-#define NbBloc 50
-#define NbBlocmeta 10
-#define Nbmeta 50
 
-typedef struct Tetudiant Tetudiant;
-struct Tetudiant
-{
-    int etat ;
-    int id;
-    char nom[20];
-    char prenom[20];
-    char sec ;
-};
-typedef struct FDmeta FDmeta;
-struct FDmeta
-{
-    char FDnom[20];
-    int taille;
-    int nbEtudiant;
-    int adresse ;
-    int modeglobal ; // 0 : contigue, 1 chainee
-    int modeinterne ; // 0 : non triee , 1 : triee
-
-};
-
-typedef struct BLOC_ch BLOC_ch;
-struct BLOC_ch
-{
-    Tetudiant t[FB];
-    int ne;
-    int next ;
-};
-typedef struct BLOC_meta BLOC_meta;
-struct BLOC_meta
-{
-    FDmeta t[FB];
-    int ne;
-};
-
-typedef struct BLOC_co BLOC_co;
-struct BLOC_co
-{
-    Tetudiant t[FB];
-    int ne;
-};
 typedef struct Position{
     int nbrbloc;
     int mov;
@@ -237,7 +192,10 @@ void remplissagetriee(Tetudiant **T,int ne){
     }
 }
 
-void Creer_du_fichiertrieechainee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant){
+
+
+
+void Creer_du_fichier_triee_chainee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant){
     // creation de metadonne
     FDmeta meta ;
     meta.nbEtudiant=nbEtudiant;
@@ -513,7 +471,7 @@ void ajouter_etudiant_fichier_chainee_non_triee(FILE *ms,FILE *f ,char nom[20]){
     }
 }
 
-void insertiondansunfichierTriee(FILE *ms, FDmeta m, Tetudiant x) {
+void insertion_dans_un_fichier_Triee(FILE *ms, FDmeta m, Tetudiant x) {
     // Move the file pointer to the starting address of the linked list in the file
     fseek(ms, NbBloc * sizeof(int) + (NbBlocmeta + m.adresse) * sizeof(BLOC_ch), SEEK_SET);
 

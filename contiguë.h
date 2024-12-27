@@ -64,7 +64,16 @@ void empty_MS_Co(FILE *ms);
 void Compact_Disk_Co(FILE *ms);
 int Manage_Storage_Space_Co(FILE *ms, int num_Etudiant);
 
-void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int taille, int internalmode);
+
+
+
+void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int taille, int internalmode);// 0 : non triee, 1 : triee
+
+// void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int taille, 1);    1 : triee
+// void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int taille, 0);    0 : non triee
+ 
+
+
 void chargerFichier_co(FILE *ms, FILE *f, char fileName[20], int taille);
 void insertion_co(FILE *MS, char file_name[30]);
 void Recherche_co(FILE *MS, int id_Tetudiant, int *num_block, int *deplacement);

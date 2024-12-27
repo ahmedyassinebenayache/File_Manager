@@ -1,16 +1,8 @@
 #include "contiguë.h"
-
-
-
-
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
-
 
 void Initialize_Disk_Co(FILE *ms){
 
@@ -22,7 +14,7 @@ void Initialize_Disk_Co(FILE *ms){
  fseek(ms,0,SEEK_SET);
 
  fwrite(Allocation_Table,sizeof(int),NbBloc,ms); //écrire la table d'allocation dans le premier bloc
-                            
+
   FDmeta meta;             //valeurs par défaut pour les blocs métadonnées
   BLOC_meta meta_bloc;
   strcpy(meta.FDnom,"");
@@ -36,7 +28,7 @@ void Initialize_Disk_Co(FILE *ms){
  meta_bloc.ne = 0;
  for(int j=0; j<NbBloc; j++){
 
- for(int i= 0; i<FB; i++){   
+ for(int i= 0; i<FB; i++){
 
   meta_bloc.t[i] = meta;
  }
@@ -46,8 +38,8 @@ void Initialize_Disk_Co(FILE *ms){
 
  }
 
- void update_Allocation_Table_co(FILE *ms,int bloc_adress , int b){ 
-    int Allocation_Table[NbBloc];                              
+ void update_Allocation_Table_co(FILE *ms,int bloc_adress , int b){
+    int Allocation_Table[NbBloc];
     fseek(ms,0,SEEK_SET);                                     // Déplace le pointeur de fichier au début du fichier
 
     fread(Allocation_Table,NbBloc *sizeof(int),1,ms);
@@ -64,7 +56,7 @@ void empty_MS_Co(FILE *ms){
     Initialize_Disk_Co(ms);
 }
 void Compact_Disk_Co(FILE *ms){
-   
+
     BLOC_co bloc;
     BLOC_meta meta;
     int Allocation_Table[NbBloc];                     //lire la table d'allocation
@@ -72,10 +64,10 @@ void Compact_Disk_Co(FILE *ms){
     fseek(ms ,0 ,SEEK_SET);
     fread(Allocation_Table,NbBloc * sizeof(int),1,ms);
 
-    int current = 0 ;                     
+    int current = 0 ;
     for(int i = 0; i<NbBloc; i++){
     if(Allocation_Table[i]==1){           //chercher un bloc non vide
-        if( i != current){                
+        if( i != current){
           Allocation_Table[i]= 0;        //marquer le bloc comme vide
           Allocation_Table[current]=1;   //marquer le bloc comme non vide
 
@@ -86,7 +78,7 @@ void Compact_Disk_Co(FILE *ms){
           fseek(ms, NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_co)+ current *sizeof(BLOC_co) ,SEEK_SET);
 
           fwrite(&bloc, sizeof(bloc),1,ms);
-          
+
                                               //si le bloc i est le premier bloc du fichier, mettre à jour le bloc métadonnées
 
           for(int k=0; k<NbBlocmeta;k++){
@@ -101,13 +93,13 @@ void Compact_Disk_Co(FILE *ms){
                 }
             }
           }
-         current++;             
+         current++;
           }
     }
     }
    fseek(ms,0,SEEK_SET);
-   
-   fwrite(Allocation_Table,NbBloc * sizeof(int),1,ms);  
+
+   fwrite(Allocation_Table,NbBloc * sizeof(int),1,ms);
 }
 int Manage_Storage_Space_Co(FILE *ms ,int num_Etudiant){
     int num_Blocs = ceil((double)num_Blocs / FB);
@@ -124,7 +116,7 @@ int Manage_Storage_Space_Co(FILE *ms ,int num_Etudiant){
     }
     if(counter < num_Blocs){  //si les blocs sont insuffisants, compacter le disque
         Compact_Disk_Co(ms);
-        
+
     }else{
         return 0;            //les blocs sont suffisants, quitter avec 0
     }
@@ -134,7 +126,7 @@ int Manage_Storage_Space_Co(FILE *ms ,int num_Etudiant){
 
      fread(Allocation_Table,NbBloc * sizeof(int),1,ms);
 
-    for(int i = 0; i<NbBloc; i++){ 
+    for(int i = 0; i<NbBloc; i++){
           //vérification des blocs après la compactage
 
         if(Allocation_Table[i] == 0){
@@ -169,7 +161,7 @@ int Manage_Storage_Space_Co(FILE *ms ,int num_Etudiant){
 
 
 
-/** 
+/**
  * Fonction pour rechercher un groupe de blocs libres dans la table d'allocation
  */
 void allouer_co(int *start, int tableAllocation[NbBloc], int nbEtudiant) {
@@ -196,7 +188,7 @@ void allouer_co(int *start, int tableAllocation[NbBloc], int nbEtudiant) {
 
 
 
-/** 
+/**
  * Fonction pour trier les élèves par ID (tri à bulles)
  */
 void trierTetudiants(Tetudiant *tTetudiant, int taille) {
@@ -210,21 +202,21 @@ void trierTetudiants(Tetudiant *tTetudiant, int taille) {
         }
     }
 }
-//chercher méta-données 
+//chercher méta-données
 FDmeta Searchmetadata(FILE *ms, char FDnom[30]){
     BLOC_meta meta;
     fseek(ms, NbBloc* sizeof(int),SEEK_SET);
         for (int j = 0; j <NbBlocmeta ; ++j) {
             fread(&meta, sizeof(BLOC_ch), 1, ms);
             for (int i = 0; i <FB; ++i) {
-                if (strcmp(meta.t[i].FDnom, FDnom) == 1) {                    
+                if (strcmp(meta.t[i].FDnom, FDnom) == 1) {
                     return meta.t[i];
                 }
             }
-        }        
+        }
     }
 
-//Mis à jour méta-données 
+//Mis à jour méta-données
 void MAJMETADATA(FILE *ms, FDmeta M){
     BLOC_meta meta;
     int cont_block_meta = 0;
@@ -281,7 +273,7 @@ void MAJMETADATA(FILE *ms, FDmeta M){
         }
 
         // Écriture du bloc dans fichier de donnée
-      
+
         fwrite(&Buferr, sizeof(Buferr), 1, f);
     } }
 
@@ -324,7 +316,7 @@ void Charger_les_élèves_triée_dans_fichier_de_donnée(FILE *f, char fileName[
     // Chargement des élèves dans les blocs
     BLOC_co Buferr;
     int recordIndex = 0;
-    
+
     rewind(f) ;
     for (int i = 0; i < nbEtudiant; i++) {
         Buferr.ne = 0;
@@ -335,11 +327,11 @@ void Charger_les_élèves_triée_dans_fichier_de_donnée(FILE *f, char fileName[
         }
 
         // Écriture du bloc dans dans fichier de donnée
-        
+
         fwrite(&Buferr, sizeof(Buferr), 1, f);
     }
 
-    
+
     free(tTetudiant);
 }
 
@@ -352,7 +344,7 @@ void Charger_les_élèves_triée_dans_fichier_de_donnée(FILE *f, char fileName[
 
 
 void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int taille, int internalmode) {
-   
+
     FDmeta fileMeta;
     BLOC_meta BuferrMeta;
     int tableAllocation[NbBloc];
@@ -442,7 +434,7 @@ void chargerFichier_co(FILE *ms,FILE *f, char fileName[20], int taille ) {
     }
 
    printf("Le fichier existe.\n");
-   
+
     nbEtudiant= BuferrMeta.t[j].nbEtudiant;
     startBlock=BuferrMeta.t[j].adresse;
 
@@ -452,7 +444,7 @@ void chargerFichier_co(FILE *ms,FILE *f, char fileName[20], int taille ) {
    while ( i<nbEtudiant){
      // on lis les blocs du fichier et on les stock dans la MS
     fread(&Buferr,sizeof(BLOC_co),1,f);
-      // on insere le bloc 
+      // on insere le bloc
     fseek(ms, NbBloc*sizeof(int) + NbBlocmeta * sizeof(BLOC_co) + (startBlock + i) * sizeof(BLOC_co), SEEK_SET);
     fwrite(&Buferr,sizeof(BLOC_co),1,ms);
 
@@ -474,29 +466,29 @@ void insertion_co(FILE *MS, char file_name[30]){
     FDmeta META;
     Tetudiant nouv_Tetudiant;
 
-    printf("Entrer les ineormations de votre nouveau etudiant\n");    
+    printf("Entrer les ineormations de votre nouveau etudiant\n");
     printf("Le nom\n");
-    scanf("%s",nouv_Tetudiant.nom);        
+    scanf("%s",nouv_Tetudiant.nom);
     printf("Le prenom\n");
     scanf("%s",nouv_Tetudiant.prenom);
     printf("L'identifiant\n");
     scanf("%d",&nouv_Tetudiant.id);
     printf("La section\n");
     scanf("%c",&nouv_Tetudiant.sec);
-    nouv_Tetudiant.etat = 1;    
+    nouv_Tetudiant.etat = 1;
 
-    
+
     rewind(MS);
     META = Searchmetadata(MS,file_name);
 
     if(strcmp(file_name,META.FDnom) == 0){
         int alloc_table[NbBloc];
         BLOC_co buffer;
-        rewind(MS);        
+        rewind(MS);
         int add_first_block = META.adresse ;
         fseek(MS, ((add_first_block + META.taille) - 1)*sizeof(BLOC_meta)+NbBloc*sizeof(int),SEEK_SET);
         fread(&buffer, sizeof(BLOC_co), 1, MS);
-        if(META.modeinterne == 0){        
+        if(META.modeinterne == 0){
             if(buffer.ne < FB){
                 buffer.t[buffer.ne] = nouv_Tetudiant;
                 buffer.ne++;
@@ -507,17 +499,17 @@ void insertion_co(FILE *MS, char file_name[30]){
             }else{
                 rewind(MS);
                 fread(&alloc_table, NbBloc*sizeof(int), 1, MS);
-                int conteur = (add_first_block + META.taille) - 1;    
+                int conteur = (add_first_block + META.taille) - 1;
                 if(alloc_table[conteur + 1] == 0){
                     //Faire entrer ce nouveau etudiant dans un nouveau block
                     META.taille = META.taille + 1;
-                    META.nbEtudiant = META.nbEtudiant + 1;            
+                    META.nbEtudiant = META.nbEtudiant + 1;
                     MAJMETADATA(MS, META);
                     rewind(MS);
                     fseek(MS,(conteur-1)*sizeof(BLOC_meta), SEEK_SET);
                     buffer.t[0] = nouv_Tetudiant;
                     buffer.ne = 1;
-                    fwrite(&buffer, sizeof(buffer), 1, MS);                          
+                    fwrite(&buffer, sizeof(buffer), 1, MS);
                 }else{
                     printf("Impossible d'ajouter un etudiant, la table de allocation est pleine\n");
                 }
@@ -542,18 +534,18 @@ void insertion_co(FILE *MS, char file_name[30]){
                             conteur_buffer--;
                         }
                         buffer.t[conteur_buffer] = nouv_Tetudiant;
-                        buffer.ne++;                        
+                        buffer.ne++;
                         fseek(MS, -sizeof(BLOC_co), SEEK_CUR);
-                        fwrite(&buffer, sizeof(BLOC_co), 1, MS);                            
-                    }else{                        
+                        fwrite(&buffer, sizeof(BLOC_co), 1, MS);
+                    }else{
                         BLOC_co temp_buffer;
                         temp_buffer = buffer;
                         int nbe = 0;
                         while(temp_buffer.ne == FB){
                             fread(&buffer, sizeof(BLOC_co), 1,MS);
-                            nbe = nbe + temp_buffer.ne;                            
+                            nbe = nbe + temp_buffer.ne;
                         }
-                        Tetudiant vect[nbe];                        
+                        Tetudiant vect[nbe];
                         if(temp_buffer.ne != FB ){
                             Tetudiant vect[nbe];
                             temp_buffer = buffer;
@@ -564,14 +556,14 @@ void insertion_co(FILE *MS, char file_name[30]){
                                 if(i == conteur_buffer){
                                     vect[i] = nouv_Tetudiant;
                                     vect[i + 1] = temp_buffer.t[j];
-                                    i++;                                   
+                                    i++;
                                 }else{
                                     vect[i] = temp_buffer.t[j];
                                 }
                                 i++;
                                 j++;
                             }
-                            //traité le reste                           
+                            //traité le reste
                             int r_nbe = nbe - (FB + 1);
                             fseek(MS, ((add_first_block + block_counteur) - 1)*sizeof(BLOC_meta)+NbBloc*sizeof(int),SEEK_SET);
                             while(r_nbe > 0){
@@ -586,35 +578,35 @@ void insertion_co(FILE *MS, char file_name[30]){
                             temp_buffer.ne++;
                             fseek(MS, -sizeof(BLOC_co), SEEK_CUR);
                             fwrite(&temp_buffer, sizeof(BLOC_meta), 1, MS);
-                            fseek(MS, ((add_first_block + block_counteur) - 1)*sizeof(BLOC_meta)+NbBloc*sizeof(int),SEEK_SET);  
+                            fseek(MS, ((add_first_block + block_counteur) - 1)*sizeof(BLOC_meta)+NbBloc*sizeof(int),SEEK_SET);
                             fread(&buffer, sizeof(BLOC_co), 1, MS);
-                            j = 0;                          
+                            j = 0;
                             for(i = 0; i<nbe ; i++){
-                                if(j < buffer.ne){                                    
+                                if(j < buffer.ne){
                                     buffer.t[j] = vect[i];
                                     j++;
                                 }else{
                                     j = 0;
                                     fread(&buffer, sizeof(BLOC_co), 1, MS);
                                 }
-                            }                               
+                            }
                         }else{
                             printf("Impossible d'ajouter un etudiant, la table de allocation est pleine\n");
-                        }                        
-                    }                    
-                    META.nbEtudiant ++;                    
+                        }
+                    }
+                    META.nbEtudiant ++;
                     MAJMETADATA(MS, META);
                     return;
                 }else{
                     block_counteur++;
-                }                
+                }
             }
-                
-        }            
-        
+
+        }
+
     }else{
         printf("Fichier %s non trouvé\n", file_name);
-        
+
         return;
     }
 }
@@ -626,7 +618,7 @@ void Recherche_co(FILE *MS, int id_Tetudiant, int *num_block, int *deplacement) 
     BLOC_co buffer;
 
     // Ouvrir le fichier en mode lecture binaire
-    
+
     if (MS == NULL) {
         perror("Erreur lors de l'ouverture du fichier");
         return;
@@ -635,7 +627,7 @@ void Recherche_co(FILE *MS, int id_Tetudiant, int *num_block, int *deplacement) 
     int conteur_block_meta = 0;
     fseek(MS, NbBloc* sizeof(int),SEEK_SET);
     // Parcourir les blocs de métadonnées
-    while (conteur_block_meta < NbBlocmeta) {        
+    while (conteur_block_meta < NbBlocmeta) {
         fread(&F_m, sizeof(BLOC_meta), 1, MS);
         // Parcourir les métadonnées de chaque fichier
         for (int conteur_meta = 0; conteur_meta < F_m.ne; conteur_meta++) {
@@ -656,7 +648,7 @@ void Recherche_co(FILE *MS, int id_Tetudiant, int *num_block, int *deplacement) 
                         }
                     }
                 }
-            } 
+            }
             // Mode triée
             else {
                 for (int n_blk = 0; n_blk < m_eta.taille; n_blk++) {
@@ -695,7 +687,7 @@ void Recherche_co(FILE *MS, int id_Tetudiant, int *num_block, int *deplacement) 
 }
 
 
-//Suppression d'un enregistrement logiquement 
+//Suppression d'un enregistrement logiquement
 void Suppression_Enregistrement_logique_co(FILE *MS, int ID_SUPP_Tetudiant, char file_name[30]) {
     BLOC_meta F_M;
     FDmeta me_ta;
@@ -719,7 +711,7 @@ void Suppression_Enregistrement_logique_co(FILE *MS, int ID_SUPP_Tetudiant, char
             fread(&buffer, sizeof(BLOC_co), 1, MS);
 
             // Suppression logique
-            buffer.t[deplacement].etat = 0;               
+            buffer.t[deplacement].etat = 0;
 
             // Écriture des modifications
             fseek(MS, -sizeof(BLOC_co), SEEK_CUR);
@@ -737,7 +729,7 @@ void Suppression_Enregistrement_logique_co(FILE *MS, int ID_SUPP_Tetudiant, char
     fclose(MS);
 }
 
-//Suppression d'un enregistrement physiquement 
+//Suppression d'un enregistrement physiquement
 void Suppression_Enregistrement_physic_co(FILE *MS, int ID_SUPP_Tetudiant, char file_name[30]) {
 
     BLOC_meta F_M;
@@ -878,7 +870,7 @@ void supprime_fichier_contigue(FILE *ms, char nom[20]) {
     BLOC_meta BuferrMeta;
     FDmeta meta;
     int i, trouv = 0, metaIndex, BlocMetacount, BlocMetaindex, startAddress, numBlocks;
-   
+
 
     // Localiser les métadonnées en fonction du nom du fichier
     fseek(ms, NbBloc * sizeof(int), SEEK_SET); // Passer la table d'allocation
@@ -906,7 +898,7 @@ void supprime_fichier_contigue(FILE *ms, char nom[20]) {
     numBlocks = meta.nbEtudiant;    // Nombre de blocs alloués
 
     // Mettre à jour la table d'allocation (libérer les blocs du fichier)
-    
+
     for (int j = startAddress; j < startAddress + numBlocks; j++) {
         update_Allocation_Table_co(ms,j , 0);// Marquer les blocs comme libres
     }
@@ -922,7 +914,7 @@ void supprime_fichier_contigue(FILE *ms, char nom[20]) {
     fseek(ms, BlocMetaindex * sizeof(BLOC_ch), SEEK_CUR);
     fwrite(&BuferrMeta, sizeof(BLOC_ch), 1, ms);
 
-  
+
 
     printf("Suppression du fichier terminée.\n");
     printf("Nombre de blocs libérés : %d\n", numBlocks);
@@ -952,16 +944,16 @@ void defragmentation_co(int adr_premierbloc , int nbr_blocs, FILE *ms){
                 	strcpy(temp[k].sec,buffer1.t[j].sec);
 	         	temp[k].id = buffer1.t[j].id;
 	         	k++;
-		}            	
+		}
 		fseek(ms, -1 * sizeof(BLOC_co), SEEK_CUR);
 		fwrite(&vide , sizeof(BLOC_co) , 1,ms);
 	}
     }
     fseek(ms,(NbBlocmeta + adr_premierbloc) * sizeof(BLOC_co) + NbBloc * sizeof(int) ,SEEK_SET);
     int nouveau_nbr_blocs = k % FB; // on calcule le nombre de bloc suite a la defragmentaion ou k est le nombre d'enregistrements non supprimés
-    for(int i = 0; i < nouveau_nbr_blocs;i++){		    	
-    	for(int j = 0; j < FB ;j++){       
-		strcpy(buffer2.t[j].nom,temp[m].nom);  // on copie les enregistrement du tableau dans les blocs avce un FB = 5 
+    for(int i = 0; i < nouveau_nbr_blocs;i++){
+    	for(int j = 0; j < FB ;j++){
+		strcpy(buffer2.t[j].nom,temp[m].nom);  // on copie les enregistrement du tableau dans les blocs avce un FB = 5
             	strcpy(buffer2.t[j].prenom,temp[m].prenom);
             	strcpy(buffer2.t[j].prenom,temp[m].sec);
 	        buffer2.t[j].id = temp[m].id;
@@ -970,14 +962,14 @@ void defragmentation_co(int adr_premierbloc , int nbr_blocs, FILE *ms){
 	fwrite(&buffer2 , sizeof(BLOC_ch) ,1,ms);
     }
     if ( m < k) {  // verifie si il reste des enregistrements dans le tableau ou k est la taille du tableau
-	for(int j = 0; j < k - m ;j++){  
+	for(int j = 0; j < k - m ;j++){
 		strcpy(buffer2.t[j].nom,temp[m].nom); *
             	strcpy(buffer2.t[j].prenom,temp[m].prenom);
             	strcpy(buffer2.t[j].prenom,temp[m].sec);
 	        buffer2.t[j].id = temp[m].id;
 	        m++;
 	}
-    }	
+    }
 }
 
 

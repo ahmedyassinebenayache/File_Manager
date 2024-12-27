@@ -1,17 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Chaînée.h"   
-#include "contigue.h"   
+#include "chaînée.h"
+#include "contiguë.h"
 
-// Prototypes des fonctions
+// Prototypes are already declared in the header files
+
 void afficherMenu();
+void choisirMode(int *mode);
 
 int main() {
-    int choix;
+    int choix, mode = -1;  // 'mode' will hold the system type, -1 indicates uninitialized
 
-    // Initialiser la mémoire ou le système SGF avant d'entrer dans le menu
-    initialiserMemoire();
+    // Choose between "chaînée" or "contiguë"
+    choisirMode(&mode);
 
     do {
         afficherMenu();  // Afficher le menu à l'utilisateur
@@ -23,7 +25,11 @@ int main() {
                 initialiserMemoire();  // Réinitialiser la mémoire
                 break;
             case 2:
-                creerFichier();  // Fonction pour créer et charger un nouveau fichier
+                if (mode == 1) {  // Chaînée
+                    creerFichier();  // Fonction pour créer et charger un fichier chaînée
+                } else if (mode == 2) {  // Contiguë
+                    creerFichierContigue();  // Fonction pour créer et charger un fichier contiguë
+                }
                 break;
             case 3:
                 afficherEtatMemoire();  // Afficher l'état de la mémoire (blocs libres/occupés)
@@ -84,3 +90,20 @@ void afficherMenu() {
     printf("0. Quitter\n");
 }
 
+// Fonction pour choisir entre chaînée ou contiguë
+void choisirMode(int *mode) {
+    printf("Choisissez le système de gestion de fichiers:\n");
+    printf("1. Chaînée\n");
+    printf("2. Contiguë\n");
+    printf("Entrez votre choix (1 ou 2): ");
+    scanf("%d", mode);
+
+    if (*mode == 1) {
+        printf("Système Chaînée sélectionné.\n");
+    } else if (*mode == 2) {
+        printf("Système Contiguë sélectionné.\n");
+    } else {
+        printf("Choix invalide. Par défaut, Chaînée sélectionné.\n");
+        *mode = 1;  // Défaut sur Chaînée
+    }
+}

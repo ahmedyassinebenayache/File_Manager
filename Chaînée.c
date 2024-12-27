@@ -845,7 +845,7 @@ void suppression_logique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id
     }
 }
 
-void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id) {
+void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20]) {
     BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;

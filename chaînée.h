@@ -1,4 +1,4 @@
-
+#ifndef CHAINEE_H
 #define CHAINEE_H
 
 #include <stdio.h>
@@ -68,7 +68,7 @@ void creer_un_fichier_chainee_non_triee(FILE *ms ,FILE *f,char nom[20],int nbEtu
 
 
 
-Position Recherche_Sur_un_fichier_chainee_triee(int ID,FILE *ms,char nom[20]);   
+Position Recherche_Sur_un_fichier_chainee_triee(int ID,FILE *ms,char nom[20]);
 void recherche_fichier_chainee_non_triee(FILE *ms, char nom[20], int id, int p[2], FILE *f);
 
 
@@ -85,4 +85,4 @@ void suppression_logique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id
 void renomer_fichier_chainee(FILE *ms, char nom[20], char nouveaunom[20]);
 void supprime_fichier_chainee(FILE *ms, char nom[20]);
 void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id);
-
+#endif

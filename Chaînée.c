@@ -244,10 +244,11 @@ void Creer_du_fichiertrieechainee(FILE *ms ,FILE *f,int nbEtudiant,char nom[20])
     BLOC_ch buffer;
     int j=0;
     while(size<FB && j<m.nbEtudiant ){
-        for (int i = 0; i < FB; i++){
+        for (int i = 0; i < FB && i<m.nbEtudiant; i++){
             buffer.t[i]=T[j];
             j++;
         }
+        buffer.ne=i;
         fwrite(&buffer, sizeof(BLOC_ch),1,f);
         size-=FB;
     }

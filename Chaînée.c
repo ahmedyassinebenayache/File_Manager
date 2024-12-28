@@ -352,6 +352,7 @@ void chargement_fichier_chainee(FILE *ms,FILE *f,char nom[20]){
     }
     printf("Le fichier existe.\n");
     rewind(f) ;
+    i=0;
     while ( i<meta.taille){
         // on lis les blocs du fichier et on les stock dans la MS
         fread(&buffer,sizeof(BLOC_ch),1,f);

@@ -94,28 +94,6 @@ int allouer (FILE *ms ){
     }
     return k ;
 }
-void Addmetadata(FILE *ms, FDmeta M){
-    BLOC_meta meta;
-    fseek(ms, NbBloc* sizeof(int),SEEK_SET);
-    fread(&meta, sizeof(BLOC_ch),1,ms);
-    if(meta.ne!=FB){
-        int i;
-        for ( i = 1; i < NbBlocmeta; ++i) {
-            fread(&meta, sizeof(BLOC_ch),1,ms);
-            if(meta.ne!=FB){
-                break;
-            }
-        }
-        if(i==NbBlocmeta-1){
-            perror("disk is full");
-        }else{
-            meta.t[meta.ne]=M;
-            meta.ne++;
-        }
-    }
-    rewind(ms);
-}
-
 Position Searchmetadata(FILE *ms, FDmeta M){
     BLOC_meta meta;
     fseek(ms, NbBloc* sizeof(int),SEEK_SET);
@@ -195,38 +173,92 @@ void remplissagetriee(Tetudiant **T,int ne){
 
 
 
-void Creer_du_fichier_triee_chainee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant){
+void Creer_du_fichiertrieechainee(FILE *ms ,FILE *f,int nbEtudiant,char nom[20]){
     // creation de metadonne
-    FDmeta meta ;
-    meta.nbEtudiant=nbEtudiant;
-    fseek(ms, NbBloc*sizeof(int), SEEK_SET);
-    printf("donne moi le nom du fichier");
-    scanf("%s",&meta.FDnom);
-    meta.taille = ceil((double)nbEtudiant / FB);
-    meta.adresse = allouer(ms) ;
-    update_Allocation_Table(ms,meta.adresse,1) ;
-    Addmetadata(ms,meta);
+    FDmeta m ;
+    m.nbEtudiant=nbEtudiant;
+    strcpy(m.FDnom,nom);
+    m.taille = ceil((double)nbEtudiant / FB);
+    m.adresse = allouer(ms) ;
+    update_Allocation_Table(ms,m.adresse,1) ;
+    BLOC_meta meta;
+    fseek(ms, NbBloc* sizeof(int),SEEK_SET);
+    fread(&meta, sizeof(BLOC_meta),1,ms);
 
+    if(meta.ne==FB){
+        int i;
+        for ( i = 1; i < NbBlocmeta; ++i) {
+            fread(&meta, sizeof(BLOC_meta),1,ms);
+            if(meta.ne!=FB){
+                break;
+            }
+        }
+        if(i==NbBlocmeta-1){
+            perror("disk is full");
+        }else{
+            meta.t[meta.ne]=m;
+            meta.ne++;
+            fseek(ms,-1*sizeof(BLOC_meta ),SEEK_CUR);
+            fwrite(&meta,sizeof(BLOC_meta ),1,ms);
+        }
+    }else{
+        meta.t[meta.ne]=m;
+        meta.ne++;
+        fseek(ms,-1*sizeof(BLOC_meta),SEEK_CUR);
+        fwrite(&meta,sizeof(BLOC_meta),1,ms);
+    }
     // ajouter les etudiants dans le fichier
-    rewind(f) ;
-    Tetudiant *A= (Tetudiant*)malloc(meta.nbEtudiant* sizeof(Tetudiant));
-    remplissagetriee(&A,meta.nbEtudiant);
-    int size =meta.nbEtudiant;
+
+    Tetudiant *T;
+    T = (Tetudiant *)malloc(nbEtudiant * sizeof(Tetudiant));
+    for (int i = 0; i < nbEtudiant; i++) {
+        printf("ID : ");
+        scanf("%d", &T[i].id);
+        getchar(); // Clear the buffer after reading an integer
+
+        printf("Nom : ");
+        fgets(T[i].nom, sizeof(T[i].nom), stdin);
+        T[i].nom[strcspn(T[i].nom, "\n")] = '\0'; // Remove the newline
+
+        printf("Prenom : ");
+        fgets(T[i].prenom, sizeof(T[i].prenom), stdin);
+        T[i].prenom[strcspn(T[i].prenom, "\n")] = '\0'; // Remove the newline
+
+        printf("Section : ");
+        scanf(" %c", &T[i].sec); // Notice the space before %c to skip whitespace
+        getchar(); // Clear the buffer after reading a character
+
+        T[i].etat = 1;
+    }
+    for (int i = 0; i < nbEtudiant; i++) {
+        for (int j = i+1; j < nbEtudiant; ++j) {
+            if(T[i].id>T[j].id){
+                Tetudiant temp ;
+                temp=T[j];
+                T[j]=T[i];
+                T[i]=temp;
+            }
+        }
+    }
+    int size =m.nbEtudiant;
     BLOC_ch buffer;
     int j=0;
-    while(size<FB && j<meta.nbEtudiant ){
+    while(size<FB && j<m.nbEtudiant ){
         for (int i = 0; i < FB; i++){
-            buffer.t[i]=A[j];
+            buffer.t[i]=T[j];
             j++;
         }
         fwrite(&buffer, sizeof(BLOC_ch),1,f);
         size-=FB;
     }
+    if(j>=m.nbEtudiant){
+        return;
+    }
     for(int i=0; i<size;i++){
-        buffer.t[i]=A[j+i];
+        buffer.t[i]=T[j+i];
     }
     fwrite(&buffer, sizeof(BLOC_ch),1,f);
-    free(A);
+
 }
 
 void creer_un_fichier_chainee_non_triee(FILE *ms ,FILE *f,char nom[20],int nbEtudiant){

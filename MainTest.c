@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Constants
 #define FB 5                // Number of students per block
 #define NbBloc 50           // Total number of blocks
 #define NbBlocmeta 10       // Number of metadata blocks
@@ -26,52 +27,67 @@ typedef struct FDmeta {
     int modeinterne;        // 0: unsorted, 1: sorted
 } FDmeta;
 
+typedef struct BLOC_ch {
+    Tetudiant t[FB];        // Array of student records
+    int ne;                 // Number of entries
+    int next;               // Pointer to the next block
+} BLOC_ch;
+
+typedef struct BLOC_co {
+    Tetudiant t[FB];        // Array of student records
+    int ne;                 // Number of entries
+} BLOC_co;
+
+typedef struct BLOC_meta {
+    FDmeta t[FB];           // Array of file metadata
+    int ne;                 // Number of entries
+} BLOC_meta;
+
+typedef struct BLOC_meta_ch {
+    FDmeta t[FB];           // Array of file metadata for linked files
+    int ne;                 // Number of entries
+    int next;               // Pointer to the next block
+} BLOC_meta_ch;
+
+typedef struct Position{
+    int nbrbloc;
+    int mov;
+} Position;
+
 // Function Prototypes
 void Initialize_Disk_Ch(FILE *ms);
 void Initialize_Disk_Co(FILE *ms);
+void update_Allocation_Table(FILE *ms, int bloc_adress, int b);
+void update_Allocation_Table_co(FILE *ms, int bloc_adress, int b);
+void empty_MS_Ch(FILE *ms);
+void empty_MS_Co(FILE *ms);
+int Manage_Storage_Space_Ch(FILE *ms, int num_Etudiant);
+int Manage_Storage_Space_Co(FILE *ms, int num_Etudiant);
+void Compact_Disk_Co(FILE *ms);
+
 void Creer_du_fichier_triee_chainee(FILE *ms, FILE *f, char nom[20], int nbEtudiant);
 void creer_un_fichier_chainee_non_triee(FILE *ms, FILE *f, char nom[20], int nbEtudiant);
+void chargement_fichier_chainee(FILE *ms, FILE *f, char nom[20]);
+void suppression_physique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id);
+void suppression_logique_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id);
+void renomer_fichier_chainee(FILE *ms, char nom[20], char nouveaunom[20]);
+void supprime_fichier_chainee(FILE *ms, char nom[20]);
+void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id);
+
+void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int taille, int internalmode);
 void chargerFichier_co(FILE *ms, FILE *f, char fileName[20]);
 void insertion_co(FILE *ms, char file_name[30]);
 void supprime_fichier_contigue(FILE *ms, char nom[20]);
-void menuSystem(FILE *ms, FILE *f);
+void defragmentation_co(int adr_premierbloc, int nbr_blocs, FILE *ms);
+void Renommer_co(FILE *ms, char *oldName, char *newName);
 
-// Function Definitions
-
-void Initialize_Disk_Ch(FILE *ms) {
-    // Code to initialize the disk for linked files
-    printf("Disk Initialized for Linked Files.\n");
-}
-
-void Initialize_Disk_Co(FILE *ms) {
-    // Code to initialize the disk for contiguous files
-    printf("Disk Initialized for Contiguous Files.\n");
-}
-
-void Creer_du_fichier_triee_chainee(FILE *ms, FILE *f, char nom[20], int nbEtudiant) {
-    // Code to create a sorted linked file
-    printf("Sorted Linked File Created: %s\n", nom);
-}
-
-void creer_un_fichier_chainee_non_triee(FILE *ms, FILE *f, char nom[20], int nbEtudiant) {
-    // Code to create an unsorted linked file
-    printf("Unsorted Linked File Created: %s\n", nom);
-}
-
-void chargerFichier_co(FILE *ms, FILE *f, char fileName[20]) {
-    // Code to load a contiguous file
-    printf("Contiguous File Loaded: %s\n", fileName);
-}
-
-void insertion_co(FILE *ms, char file_name[30]) {
-    // Code to insert a record into a contiguous file
-    printf("Record Inserted into Contiguous File: %s\n", file_name);
-}
-
-void supprime_fichier_contigue(FILE *ms, char nom[20]) {
-    // Code to delete a contiguous file
-    printf("Contiguous File Deleted: %s\n", nom);
-}
+void ajouter_etudiant_fichier_chainee_non_triee(FILE *ms, FILE *f, char nom[20]);
+void insertion_dans_un_fichier_Triee(FILE *ms, FDmeta m, Tetudiant x);
+Position Recherche_Sur_un_fichier_chainee_triee(int ID, FILE *ms, char nom[20]);
+void recherche_fichier_chainee_non_triee(FILE *ms, char nom[20], int id, int p[2], FILE *f);
+void Recherche_co(FILE *MS, int id_Tetudiant, int *num_block, int *deplacement);
+void Suppression_Enregistrement_logique_co(FILE *MS, int ID_SUPP_Tetudiant, char file_name[30]);
+void Suppression_Enregistrement_physic_co(FILE *MS, int ID_SUPP_Tetudiant, char file_name[30]);
 
 void menuSystem(FILE *ms, FILE *f) {
     int mode = -1;  // Mode for selecting Linked or Contiguous
@@ -85,88 +101,113 @@ void menuSystem(FILE *ms, FILE *f) {
     scanf("%d", &mode);
 
     // Start the menu loop only after the mode has been selected
-    do {
-        if (mode == 1) {  // Linked Mode Menu
-            printf("\n--- Linked List Operations ---\n");
-            printf("1. Initialize Disk (Linked)\n");
-            printf("2. Create a Sorted Linked File\n");
-            printf("3. Create an Unsorted Linked File\n");
-            printf("4. Load Linked File\n");
-            printf("5. Delete Linked File\n");
-            printf("0. Exit\n");
-        } else if (mode == 2) {  // Contiguous Mode Menu
-            printf("\n--- Contiguous File Operations ---\n");
-            printf("1. Initialize Disk (Contiguous)\n");
-            printf("2. Create a Contiguous File\n");
-            printf("3. Load Contiguous File\n");
-            printf("4. Insert Record into Contiguous File\n");
-            printf("5. Delete Contiguous File\n");
-            printf("0. Exit\n");
-        } else {
-            printf("Invalid mode selected. Exiting...\n");
-            break;
-        }
+    if (mode == 1 || mode == 2) {
+        do {
+            if (mode == 1) {  // Linked Mode Menu
+                printf("\n--- Linked List Operations ---\n");
+                printf("1. Initialize Disk (Linked)\n");
+                printf("2. Create a Sorted Linked File\n");
+                printf("3. Create an Unsorted Linked File\n");
+                printf("4. Load Linked File\n");
+                printf("5. Physical Deletion of Student Record\n");
+                printf("6. Logical Deletion of Student Record\n");
+                printf("7. Rename Linked File\n");
+                printf("8. Delete Linked File\n");
+                printf("9. Defragment Linked File\n");
+                printf("0. Exit\n");
+            } else if (mode == 2) {  // Contiguous Mode Menu
+                printf("\n--- Contiguous File Operations ---\n");
+                printf("1. Initialize Disk (Contiguous)\n");
+                printf("2. Create a Contiguous File\n");
+                printf("3. Load Contiguous File\n");
+                printf("4. Insert Record into Contiguous File\n");
+                printf("5. Delete Contiguous File\n");
+                printf("6. Defragment Contiguous File\n");
+                printf("7. Rename Contiguous File\n");
+                printf("0. Exit\n");
+            }
 
-        printf("Enter your choice: ");
-        scanf("%d", &choice);  // Read user input for operation
+            printf("Enter your choice: ");
+            scanf("%d", &choice);  // Read user input for operation
 
-        // Only call the appropriate functions when the user selects an action
-        switch (choice) {
-            case 1:
-                if (mode == 1) {
-                    Initialize_Disk_Ch(ms);  // Initialize Disk for Linked
-                } else if (mode == 2) {
-                    Initialize_Disk_Co(ms);  // Initialize Disk for Contiguous
-                }
-                break;
+            // Only call the appropriate functions when the user selects an action
+            switch (choice) {
+                case 1:
+                    if (mode == 1) {
+                        printf("Function Initialize_Disk_Ch is not implemented yet.\n");
+                    } else if (mode == 2) {
+                        printf("Function Initialize_Disk_Co is not implemented yet.\n");
+                    }
+                    break;
 
-            case 2:
-                if (mode == 1) {
-                    Creer_du_fichier_triee_chainee(ms, f, "example", 10);  // Create Sorted Linked File
-                } else if (mode == 2) {
-                    creer_un_fichier_chainee_non_triee(ms, f, "example", 10);  // Create Unsorted Linked File
-                }
-                break;
+                case 2:
+                    if (mode == 1) {
+                        printf("Function Creer_du_fichier_triee_chainee is not implemented yet.\n");
+                    } else if (mode == 2) {
+                        printf("Function creer_un_fichier_co is not implemented yet.\n");
+                    }
+                    break;
 
-            case 3:
-                if (mode == 1) {
-                    chargerFichier_co(ms, f, "example");  // Load Linked File
-                } else if (mode == 2) {
-                    chargerFichier_co(ms, f, "example");  // Load Contiguous File
-                }
-                break;
+                case 3:
+                    if (mode == 1) {
+                        printf("Function creer_un_fichier_chainee_non_triee is not implemented yet.\n");
+                    } else if (mode == 2) {
+                        printf("Function chargerFichier_co is not implemented yet.\n");
+                    }
+                    break;
 
-            case 4:
-                if (mode == 1) {
-                    printf("Linked file operations not implemented yet.\n");
-                } else if (mode == 2) {
-                    insertion_co(ms, "example");  // Insert into Contiguous File
-                }
-                break;
+                case 4:
+                    if (mode == 1) {
+                        printf("Function chargement_fichier_chainee is not implemented yet.\n");
+                    } else if (mode == 2) {
+                        printf("Function insertion_co is not implemented yet.\n");
+                    }
+                    break;
 
-            case 5:
-                if (mode == 1) {
-                    printf("Linked file deletion not implemented yet.\n");
-                } else if (mode == 2) {
-                    supprime_fichier_contigue(ms, "example");  // Delete Contiguous File
-                }
-                break;
+                case 5:
+                    if (mode == 1) {
+                        printf("Function suppression_physique_fichier_chainee is not implemented yet.\n");
+                    } else if (mode == 2) {
+                        printf("Function supprime_fichier_contigue is not implemented yet.\n");
+                    }
+                    break;
 
-            case 0:
-                printf("Exiting...\n");
-                break;
+                case 6:
+                    if (mode == 1) {
+                        printf("Function suppression_logique_fichier_chainee is not implemented yet.\n");
+                    } else if (mode == 2) {
+                        printf("Function defragmentation_co is not implemented yet.\n");
+                    }
+                    break;
 
-            default:
-                printf("Invalid choice. Try again.\n");
-        }
-    } while (choice != 0);  // Continue until the user chooses to exit
+                case 7:
+                    if (mode == 1) {
+                        printf("Function renomer_fichier_chainee is not implemented yet.\n");
+                    } else if (mode == 2) {
+                        printf("Function Renommer_co is not implemented yet.\n");
+                    }
+                    break;
+
+                case 0:
+                    printf("Exiting...\n");
+                    break;
+
+                default:
+                    printf("Invalid choice, please try again.\n");
+                    break;
+            }
+        } while (choice != 0);
+    } else {
+        printf("Invalid mode selection, please choose either 1 or 2.\n");
+    }
 }
 
 int main() {
-    FILE *ms = NULL;  // Simulated memory space (can be a file pointer if needed)
-    FILE *f = NULL;   // Placeholder for file handling
+    FILE *ms = NULL;  // Disk simulation (empty file) pointer
+    FILE *f = NULL;   // File operations pointer
 
-    menuSystem(ms, f);  // Run the menu system
-
+    // Call the menu system
+    menuSystem(ms, f);
+    
     return 0;
 }

@@ -450,7 +450,7 @@ void chargerFichier_co(FILE *ms,FILE *f, char fileName[20] ) {
 
    }
 
-   printf("Le fichier '%s' a été chargé en mode non trié avec succès.\n", fileName);
+   printf("Le fichier '%s' a été chargé  avec succès.\n", fileName);
 
     // Mise à jour de la table d'allocation
     for (int i = startBlock; i < startBlock + nbEtudiant; i++) {
@@ -834,7 +834,7 @@ void Renommer_co(FILE *ms, char *oldName, char *newName) {
 
     // Parcourir les blocs de métadonnées
     for (int i = 0; i < NbBlocmeta; i++) {
-        fread(&BuferrMeta, sizeof(BLOC_co), 1, ms); // Lire un bloc de métadonnées
+        fread(&BuferrMeta, sizeof(BLOC_meta), 1, ms); // Lire un bloc de métadonnées
 
         // Rechercher le fichier par son nom
         for (int j = 0; j < BuferrMeta.ne; j++) {
@@ -844,8 +844,8 @@ void Renommer_co(FILE *ms, char *oldName, char *newName) {
                 found = 1;
 
                 // Revenir en arrière pour réécrire le bloc mis à jour
-                fseek(ms, -sizeof(BLOC_co), SEEK_CUR);
-                fwrite(&BuferrMeta, sizeof(BLOC_co), 1, ms);
+                fseek(ms, -sizeof(BLOC_meta), SEEK_CUR);
+                fwrite(&BuferrMeta, sizeof(BLOC_meta), 1, ms);
 
                 printf("Le fichier '%s' a été renommé en '%s'.\n", oldName, newName);
                 break;
@@ -875,7 +875,7 @@ void supprime_fichier_contigue(FILE *ms, char nom[20]) {
     // Localiser les métadonnées en fonction du nom du fichier
     fseek(ms, NbBloc * sizeof(int), SEEK_SET); // Passer la table d'allocation
     BlocMetacount = 0;
-    while (!trouv && fread(&BuferrMeta, sizeof(BLOC_ch), 1, ms)) {
+    while (!trouv && fread(&BuferrMeta, sizeof(BLOC_meta), 1, ms)) {
         for (i = 0; i < BuferrMeta.ne; i++) {
             if (strcmp(BuferrMeta.t[i].FDnom, nom) == 0) {
                 trouv = 1;
@@ -911,8 +911,8 @@ void supprime_fichier_contigue(FILE *ms, char nom[20]) {
 
     // Sauvegarder les métadonnées mises à jour
     fseek(ms, NbBloc * sizeof(int), SEEK_SET);
-    fseek(ms, BlocMetaindex * sizeof(BLOC_ch), SEEK_CUR);
-    fwrite(&BuferrMeta, sizeof(BLOC_ch), 1, ms);
+    fseek(ms, BlocMetaindex * sizeof(BLOC_meta), SEEK_CUR);
+    fwrite(&BuferrMeta, sizeof(BLOC_meta), 1, ms);
 
 
 

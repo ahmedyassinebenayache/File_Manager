@@ -184,10 +184,6 @@ void allouer_co(int *start, int tableAllocation[NbBloc], int nbEtudiant) {
 }
 
 
-
-
-
-
 /**
  * Fonction pour trier les élèves par ID (tri à bulles)
  */
@@ -202,6 +198,243 @@ void trierTetudiants(Tetudiant *tTetudiant, int taille) {
         }
     }
 }
+//chercher méta-données
+
+
+
+
+
+
+
+
+ void Charger_les_élèves_non_triée_dans_fichier_de_donnée(FILE *f, char fileName[20], int startBloc, int nbEtudiant, int taille) {
+    Tetudiant record;
+    BLOC_co Buferr;
+    int recordIndex = 0;
+
+    rewind(f) ;
+    printf("Enter student information (ID, Name, First name, Section):\n");
+    for (int i = 0; i <taille ; i++) {
+        Buferr.ne = 0;
+
+        for (int j = 0; j < FB && recordIndex < nbEtudiant; j++) {
+            printf("Etudiant %d:\n", recordIndex + 1);
+            record.etat = 1; // Élève existant
+            printf("ID: ");
+            scanf("%d", &record.id);
+            printf("Name: ");
+            scanf(" %[^\n]", record.nom);
+            printf("First name : ");
+            scanf(" %[^\n]", record.prenom);
+            printf("Section: ");
+            scanf(" %c", &record.sec);
+
+            Buferr.t[j] = record;
+            Buferr.ne++;
+            recordIndex++;
+        }
+
+        // Écriture du bloc dans fichier de donnée
+
+        fwrite(&Buferr, sizeof(Buferr), 1, f);
+    } }
+
+
+
+
+
+
+
+
+
+
+/**
+ * Fonction pour charger les élèves en mode trié
+ */
+void Charger_les_élèves_triée_dans_fichier_de_donnée(FILE *f, char fileName[20], int startBloc, int nbEtudiant, int taille) {
+    Tetudiant *tTetudiant = malloc(nbEtudiant * sizeof(Tetudiant));
+    if (tTetudiant == NULL) {
+        printf("Erreur : Impossible d'allouer de la mémoire.\n");
+        return;
+    }
+
+    printf("Entrez les ineormations des élèves (ID, Nom, Prénom, Section):\n");
+    for (int i = 0; i < nbEtudiant; i++) {
+        tTetudiant[i].etat = 1; // Élève existant
+        printf("Élève %d:\n", i + 1);
+        printf("ID: ");
+        scanf("%d", &tTetudiant[i].id);
+        printf("Nom: ");
+        scanf(" %[^\n]", tTetudiant[i].nom);
+        printf("Prénom: ");
+        scanf(" %[^\n]", tTetudiant[i].prenom);
+        printf("Section: ");
+        scanf(" %c", &tTetudiant[i].sec);
+    }
+
+    // tri des élèves
+    trierTetudiants(tTetudiant, nbEtudiant);
+
+    // Chargement des élèves dans les blocs
+    BLOC_co Buferr;
+    int recordIndex = 0;
+
+    rewind(f) ;
+    for (int i = 0; i < nbEtudiant; i++) {
+        Buferr.ne = 0;
+
+        for (int j = 0; j < FB && recordIndex < nbEtudiant; j++) {
+            Buferr.t[j] = tTetudiant[recordIndex++];
+            Buferr.ne++;
+        }
+
+        // Écriture du bloc dans dans fichier de donnée
+
+        fwrite(&Buferr, sizeof(Buferr), 1, f);
+    }
+
+
+    free(tTetudiant);
+}
+
+
+
+
+
+
+
+
+void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int nbEtudiant, int internalmode) {
+
+    FDmeta fileMeta;
+    BLOC_meta BuferrMeta;
+    int tableAllocation[NbBloc];
+     int taille=ceil((double)nbEtudiant / FB);
+   
+    fseek(ms, 0, SEEK_SET);
+    fread(tableAllocation, sizeof(int), NbBloc, ms);
+    
+    fseek(ms, NbBloc * sizeof(int), SEEK_SET);
+    int trouv = 0;
+    int startBlock = -1; // Initialiser startBlock
+    for (int j = 0; j < NbBlocmeta; j++) { // Correction: Boucle for pour parcourir tous les blocs méta
+        fread(&BuferrMeta, sizeof(BLOC_meta), 1, ms); // Correction: sizeof(BLOC_meta)
+        for (int i = 0; i < FB; i++) {
+            if (BuferrMeta.t[i].taille == 0) {
+                trouv = 1;
+                fileMeta.nbEtudiant = nbEtudiant;
+                fileMeta.taille = taille;
+                fileMeta.modeglobal = 0;
+                fileMeta.modeinterne = internalmode;
+                strcpy(fileMeta.FDnom, FDnom);
+
+                allouer_co(&startBlock, tableAllocation, fileMeta.nbEtudiant);
+                if (startBlock == -1) {
+                    printf("Error: Not enough free space to upload the file.\n");
+                    return;
+                }
+
+                fileMeta.adresse = startBlock;
+
+                BuferrMeta.t[i] = fileMeta; // Correction: Écrire à l'index i
+                BuferrMeta.ne++;
+
+                fseek(ms, NbBloc * sizeof(int) + j * sizeof(BLOC_meta), SEEK_SET); // Correction: Calcul de l'offset
+                fwrite(&BuferrMeta, sizeof(BLOC_meta), 1, ms); // Correction: sizeof(BLOC_meta)
+
+          
+            }
+        }
+    }
+    if(!trouv) printf("There is not enough space (in Meta blocks) to create the file'%s'\n", FDnom);
+    end_create: // Label pour le goto
+    if (trouv){
+            if (internalmode == 0){
+                Charger_les_élèves_non_triée_dans_fichier_de_donnée(&f, FDnom, startBlock, nbEtudiant , taille);
+                 printf("File '%s' was created in  unsorted mode successfully .\n", FDnom);
+            }else{
+                 Charger_les_élèves_triée_dans_fichier_de_donnée(&f, FDnom, startBlock, nbEtudiant, taille);
+                printf("File '%s' was created in sorted mode successfully .\n", FDnom);
+                }
+                
+    }
+}
+
+
+
+
+
+
+
+
+
+/**
+ * Fonction pour charger un fichier
+ */
+void chargerFichier_co(FILE *ms, FILE *f, char fileName[20]) {
+    if (ms == NULL || f == NULL) {
+        printf("Error: Invalid file pointer.\n");
+        return;
+    }
+
+
+    BLOC_meta BuferrMeta;
+    BLOC_co Buferr;
+    int nbEtudiant, startBlock;
+
+    // Recherche du fichier dans les métadonnées
+    fseek(ms, NbBloc * sizeof(int), SEEK_SET);
+    int found = 0, k = 0, fileIndex = -1;
+
+    while (k < NbBlocmeta && found == 0) {
+        fread(&BuferrMeta, sizeof(BuferrMeta), 1, ms);
+
+        for (int j = 0; j < BuferrMeta.ne && found == 0; j++) {
+            if (strcmp(BuferrMeta.t[j].FDnom, fileName) == 0) {
+                found = 1;
+                fileIndex = j;
+            }
+        }
+        k++;
+    }
+
+    if (fileIndex == -1) {
+        printf("Error: File '%s' does not exist in metadata.\n", fileName);
+        return;
+    }
+
+    printf("The file exists.\n");
+
+    nbEtudiant = BuferrMeta.t[fileIndex].nbEtudiant;
+    startBlock = BuferrMeta.t[fileIndex].adresse;
+
+    // Charger les blocs
+    rewind(f);
+    int i = 0;
+    while (i < nbEtudiant) {
+        if (fread(&Buferr, sizeof(BLOC_co), 1, f) != 1) {
+            printf("Error: Failed to read from the input file.\n");
+            return;
+        }
+
+        fseek(ms, NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_co) + (startBlock + i) * sizeof(BLOC_co), SEEK_SET);
+        if (fwrite(&Buferr, sizeof(BLOC_co), 1, ms) != 1) {
+            printf("Error: Failed to write to the secondary memory.\n");
+            return;
+        }
+
+        i++;
+    }
+
+    printf("File '%s' was successfully uploaded (chargé).\n",fileName);
+
+    // Mise à jour de la table d'allocation
+    for (int i = startBlock; i < startBlock + nbEtudiant; i++) {
+        update_Allocation_Table_co(ms, i, 1);
+    }
+}
+
+
 //chercher méta-données
 FDmeta Searchmetadata(FILE *ms, char FDnom[30]){
     BLOC_meta meta;
@@ -240,226 +473,6 @@ void MAJMETADATA(FILE *ms, FDmeta M){
 }
 
 
-
-
-
-
-
- void Charger_les_élèves_non_triée_dans_fichier_de_donnée(FILE *f, char fileName[20], int startBloc, int nbEtudiant, int taille) {
-    Tetudiant record;
-    BLOC_co Buferr;
-    int recordIndex = 0;
-
-    rewind(f) ;
-    printf("Entrez les ineormations des élèves (ID, Nom, Prénom, Section):\n");
-    for (int i = 0; i < nbEtudiant; i++) {
-        Buferr.ne = 0;
-
-        for (int j = 0; j < FB && recordIndex < taille; j++) {
-            printf("Élève %d:\n", recordIndex + 1);
-            record.etat = 1; // Élève existant
-            printf("ID: ");
-            scanf("%d", &record.id);
-            printf("Nom: ");
-            scanf(" %[^\n]", record.nom);
-            printf("Prénom: ");
-            scanf(" %[^\n]", record.prenom);
-            printf("Section: ");
-            scanf(" %c", &record.sec);
-
-            Buferr.t[j] = record;
-            Buferr.ne++;
-            recordIndex++;
-        }
-
-        // Écriture du bloc dans fichier de donnée
-
-        fwrite(&Buferr, sizeof(Buferr), 1, f);
-    } }
-
-
-
-
-
-
-
-
-
-
-/**
- * Fonction pour charger les élèves en mode trié
- */
-void Charger_les_élèves_triée_dans_fichier_de_donnée(FILE *f, char fileName[20], int startBloc, int nbEtudiant, int taille) {
-    Tetudiant *tTetudiant = malloc(taille * sizeof(Tetudiant));
-    if (tTetudiant == NULL) {
-        printf("Erreur : Impossible d'allouer de la mémoire.\n");
-        return;
-    }
-
-    printf("Entrez les ineormations des élèves (ID, Nom, Prénom, Section):\n");
-    for (int i = 0; i < taille; i++) {
-        tTetudiant[i].etat = 1; // Élève existant
-        printf("Élève %d:\n", i + 1);
-        printf("ID: ");
-        scanf("%d", &tTetudiant[i].id);
-        printf("Nom: ");
-        scanf(" %[^\n]", tTetudiant[i].nom);
-        printf("Prénom: ");
-        scanf(" %[^\n]", tTetudiant[i].prenom);
-        printf("Section: ");
-        scanf(" %c", &tTetudiant[i].sec);
-    }
-
-    // tri des élèves
-    trierTetudiants(tTetudiant, taille);
-
-    // Chargement des élèves dans les blocs
-    BLOC_co Buferr;
-    int recordIndex = 0;
-
-    rewind(f) ;
-    for (int i = 0; i < nbEtudiant; i++) {
-        Buferr.ne = 0;
-
-        for (int j = 0; j < FB && recordIndex < taille; j++) {
-            Buferr.t[j] = tTetudiant[recordIndex++];
-            Buferr.ne++;
-        }
-
-        // Écriture du bloc dans dans fichier de donnée
-
-        fwrite(&Buferr, sizeof(Buferr), 1, f);
-    }
-
-
-    free(tTetudiant);
-}
-
-
-
-
-
-
-
-
-
-void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int taille, int internalmode) {
-
-    FDmeta fileMeta;
-    BLOC_meta BuferrMeta;
-    int tableAllocation[NbBloc];
-    fseek(ms, 0, SEEK_SET);
-    fread(tableAllocation, sizeof(int), NbBloc, ms);
-
-    fseek(ms, NbBloc * sizeof(int), SEEK_SET);
-    int trouv = 0;
-    int startBlock = -1; // Initialiser startBlock
-    for (int j = 0; j < NbBlocmeta; j++) { // Correction: Boucle for pour parcourir tous les blocs méta
-        fread(&BuferrMeta, sizeof(BLOC_meta), 1, ms); // Correction: sizeof(BLOC_meta)
-        for (int i = 0; i < FB; i++) {
-            if (BuferrMeta.t[i].taille == 0) {
-                trouv = 1;
-                fileMeta.nbEtudiant = ceil((double)taille / FB);
-                fileMeta.taille = taille;
-                fileMeta.modeglobal = 0;
-                fileMeta.modeinterne = internalmode;
-                strcpy(fileMeta.FDnom, FDnom);
-
-                allouer_co(&startBlock, tableAllocation, fileMeta.nbEtudiant);
-                if (startBlock == -1) {
-                    printf("Erreur : Pas assez d'espace libre pour charger le fichier.\n");
-                    return;
-                }
-
-                fileMeta.adresse = startBlock;
-
-                BuferrMeta.t[i] = fileMeta; // Correction: Écrire à l'index i
-                BuferrMeta.ne++;
-
-                fseek(ms, NbBloc * sizeof(int) + j * sizeof(BLOC_meta), SEEK_SET); // Correction: Calcul de l'offset
-                fwrite(&BuferrMeta, sizeof(BLOC_meta), 1, ms); // Correction: sizeof(BLOC_meta)
-
-                goto end_create; // Sortir des boucles imbriquées
-            }
-        }
-    }
-    if(!trouv) printf("Il n'y a pas assez d'espace (dans les blocMeta) pour créer le fichier'%s'\n", FDnom);
-    end_create: // Label pour le goto
-    if (trouv){
-            if (internalmode == 0)
-                Charger_les_élèves_non_triée_dans_fichier_de_donnée(f, FDnom, startBlock, ceil((double)taille / FB), taille);
-            else
-                Charger_les_élèves_triée_dans_fichier_de_donnée(f, FDnom, startBlock, ceil((double)taille / FB), taille);
-
-            printf("Le fichier '%s' a été créé avec succès.\n", FDnom);
-    }
-}
-
-
-
-
-
-
-
-
-
-/**
- * Fonction pour charger un fichier
- */
-void chargerFichier_co(FILE *ms,FILE *f, char fileName[20] ) {
-    int tableAllocation[NbBloc];
-    BLOC_meta BuferrMeta;
-    BLOC_co Buferr;
-    int nbEtudiant, startBlock;
-
-
-
-
-// Recherche du fichier dans les métadonnées
-   fseek(ms, NbBloc*sizeof(int), SEEK_SET);
-    int found = 0, k = 0, j = 0;
-
-    while (k < NbBlocmeta && found == 0) {
-        fread(&BuferrMeta, sizeof(BuferrMeta), 1, ms);
-
-        for (j = 0; j < BuferrMeta.ne && found == 0; j++) {
-            if (strcmp(BuferrMeta.t[j].FDnom, fileName) == 0) found = 1;
-        }
-        k++;
-    }
-
-    if (found == 0) {
-        printf("Erreur : Le fichier '%s' n'existe pas dans les métadonnées.\n", fileName);
-        return;
-    }
-
-   printf("Le fichier existe.\n");
-
-    nbEtudiant= BuferrMeta.t[j].nbEtudiant;
-    startBlock=BuferrMeta.t[j].adresse;
-
-
-     int i=0;
-    rewind(f) ;
-   while ( i<nbEtudiant){
-     // on lis les blocs du fichier et on les stock dans la MS
-    fread(&Buferr,sizeof(BLOC_co),1,f);
-      // on insere le bloc
-    fseek(ms, NbBloc*sizeof(int) + NbBlocmeta * sizeof(BLOC_co) + (startBlock + i) * sizeof(BLOC_co), SEEK_SET);
-    fwrite(&Buferr,sizeof(BLOC_co),1,ms);
-
-   }
-
-   printf("Le fichier '%s' a été chargé  avec succès.\n", fileName);
-
-    // Mise à jour de la table d'allocation
-    for (int i = startBlock; i < startBlock + nbEtudiant; i++) {
-         update_Allocation_Table_co(ms,i , 1)  ;
-    }
-
-}
-
-
 //insertion d'un nouveau etudiant
 void insertion_co(FILE *MS, char file_name[30]){
     BLOC_meta F_m;
@@ -467,15 +480,16 @@ void insertion_co(FILE *MS, char file_name[30]){
     Tetudiant nouv_Tetudiant;
 
     printf("Entrer les ineormations de votre nouveau etudiant\n");
-    printf("Le nom\n");
-    scanf("%s",nouv_Tetudiant.nom);
-    printf("Le prenom\n");
-    scanf("%s",nouv_Tetudiant.prenom);
-    printf("L'identifiant\n");
-    scanf("%d",&nouv_Tetudiant.id);
-    printf("La section\n");
-    scanf("%c",&nouv_Tetudiant.sec);
-    nouv_Tetudiant.etat = 1;
+        
+        printf("ID: ");
+        scanf("%d", & nouv_Tetudiant.id);
+        printf("Name : ");
+        scanf(" %[^\n]",  nouv_Tetudiant.nom);
+        printf("First name : ");
+        scanf(" %[^\n]",  nouv_Tetudiant.prenom);
+        printf("Section : ");
+        scanf(" %c", &nouv_Tetudiant.sec);
+    
 
 
     rewind(MS);
@@ -510,6 +524,7 @@ void insertion_co(FILE *MS, char file_name[30]){
                     buffer.t[0] = nouv_Tetudiant;
                     buffer.ne = 1;
                     fwrite(&buffer, sizeof(buffer), 1, MS);
+                    
                 }else{
                     printf("Impossible d'ajouter un etudiant, la table de allocation est pleine\n");
                 }
@@ -589,6 +604,7 @@ void insertion_co(FILE *MS, char file_name[30]){
                                     j = 0;
                                     fread(&buffer, sizeof(BLOC_co), 1, MS);
                                 }
+                               
                             }
                         }else{
                             printf("Impossible d'ajouter un etudiant, la table de allocation est pleine\n");
@@ -847,7 +863,7 @@ void Renommer_co(FILE *ms, char *oldName, char *newName) {
                 fseek(ms, -sizeof(BLOC_meta), SEEK_CUR);
                 fwrite(&BuferrMeta, sizeof(BLOC_meta), 1, ms);
 
-                printf("Le fichier '%s' a été renommé en '%s'.\n", oldName, newName);
+                printf("File '%s' has been renamed to '%s'.\n", oldName, newName);
                 break;
             }
         }
@@ -856,7 +872,7 @@ void Renommer_co(FILE *ms, char *oldName, char *newName) {
     }
 
     if (!found) {
-        printf("Erreur : Le fichier '%s' n'existe pas.\n", oldName);
+        printf("Error: File '%s' does not exist.\n", oldName);
     }
 }
 
@@ -889,7 +905,7 @@ void supprime_fichier_contigue(FILE *ms, char nom[20]) {
     }
 
     if (!trouv) {
-        printf("Fichier non trouvé.\n");
+        printf("File not found.\n");
         return;
     }
 
@@ -916,8 +932,8 @@ void supprime_fichier_contigue(FILE *ms, char nom[20]) {
 
 
 
-    printf("Suppression du fichier terminée.\n");
-    printf("Nombre de blocs libérés : %d\n", numBlocks);
+    printf("File deletion completed.\n");
+    printf("Number of blocks released: %d\n", numBlocks);
 }
 
 void defragmentation_co(int adr_premierbloc , int nbr_blocs, FILE *ms){
@@ -974,3 +990,94 @@ void defragmentation_co(int adr_premierbloc , int nbr_blocs, FILE *ms){
 
 
 
+
+
+
+
+void lire_fichier_par_nom(FILE *ms, const char *nomFichier) {
+    if (ms == NULL || nomFichier == NULL) {
+        printf("Error: Invalid file pointer or file name.\n");
+        return;
+    }
+
+    BLOC_meta BuferrMeta;
+    BLOC_co buffer;
+    FDmeta meta;
+    int found = 0;
+
+    // قراءة البيانات الوصفية من ذاكرة ms
+    fseek(ms, NbBloc * sizeof(int), SEEK_SET);
+
+    // البحث عن الملف في الكتل الوصفية
+    for (int i = 0; i < NbBlocmeta; i++) {
+        fread(&BuferrMeta, sizeof(BLOC_meta), 1, ms);
+
+        for (int j = 0; j < BuferrMeta.ne; j++) {
+            if (strcmp(BuferrMeta.t[j].FDnom, nomFichier) == 0) {
+                found = 1;
+                meta = BuferrMeta.t[j];
+                break;
+            }
+        }
+
+        if (found) break;
+    }
+
+    if (!found) {
+        printf("Error: File '%s' not found in metadata blocks.\n", nomFichier);
+        return;
+    }
+
+    // قراءة بيانات الملف من الكتل المخصصة له
+    int currentBlock = meta.adresse;
+    for (int cpt = 0; cpt < meta.nbEtudiant; cpt++) {
+        fseek(ms, NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_meta) + currentBlock * sizeof(BLOC_co), SEEK_SET);
+        if (fread(&buffer, sizeof(BLOC_co), 1, ms) != 1) {
+            printf("Error: Failed to read block %d from memory.\n", currentBlock);
+            return;
+        }
+
+        // طباعة البيانات
+        for (int k = 0; k < buffer.ne; k++) {
+            printf("Etudiant %d:\n", k + 1);
+            printf("ID: %d\n", buffer.t[k].id);
+            printf("Nom: %s\n", buffer.t[k].nom);
+            printf("Prenom: %s\n", buffer.t[k].prenom);
+            printf("Section: %s\n", buffer.t[k].sec);
+            printf("\n");
+        }
+
+        currentBlock++;
+    }
+
+    printf("File '%s' read successfully.\n", nomFichier);
+}
+
+
+
+
+
+
+
+
+void main() {
+    FILE *ms = fopen("MemoireSecondaire.data", "wb+");
+    if (ms == NULL) {
+        perror("Erreur d'ouverture de MemoireSecondaire.data");
+        return 1;
+    }
+
+    FILE *f = fopen("Data.data", "wb+");
+    if (f == NULL) {
+        perror("Erreur d'ouverture de Data.data");
+        fclose(ms);
+        return 1;
+    }
+
+
+    Initialize_Disk_Co(ms);
+    creer_un_fichier_co(ms, f, "grp4", 5, 0);
+    chargerFichier_co(ms, f, "grp4");
+    lire_fichier_par_nom(ms, "grp4");
+
+}

@@ -71,7 +71,7 @@ void Rename_File_Ch(FILE *ms, char name[20], char newname[20]);                 
 void supprime_fichier_chainee(FILE *ms, char nom[20]);                                             // Option 5: Delete linked file
 void add_student_to_unsorted_linked_file(FILE *ms, char fileName[20], Tetudiant student); // Option 6:
 void add_student_to_sorted_linked_file(FILE *ms, char nom[20],Tetudiant x);   // Add to linked list (Sorted & Unsorted)
-void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id);                     // Option 7: Defragmentation a linked file
+void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20]);                     // Option 7: Defragmentation a linked file
 void Search_Linked_File(FILE *ms, char name[20], int id, int p[2], int sorted);                    // Option 8: Search in linked file (Sorted & Unsorted)
 void physical_deletion_from_linked_file(FILE *ms, FILE *f, char name[20], int id);                 // Option 9:
 void logical_deletion_from_linked_file(FILE *ms, FILE *f, char name[20], int id);                  // Delete record from linked file
@@ -262,16 +262,17 @@ int main() {
 
                             // Student Information
                             Tetudiant student;
+                            student.etat = 1;
                             // Prompt user for new student information
                             printf("Enter the new student's information:\n");
                             printf("ID: ");
                             scanf("%d", &student.id);
                             printf("Name: ");
-                            scanf(" %[^\n]", student.nom);
+                            scanf(" %s[^\n]", student.nom);
                             printf("Surname: ");
-                            scanf(" %[^\n]", student.prenom);
+                            scanf(" %s[^\n]", student.prenom);
                             printf("Section: ");
-                            scanf(" %[^\n]", student.sec);
+                            scanf(" %c[^\n]", student.sec);
 
                             if (sorted) {
                                 add_student_to_sorted_linked_file(ms, nom, student);
@@ -295,10 +296,8 @@ int main() {
                             int id;
                             printf("Enter the file name: ");
                             scanf("%s", nom);
-                            printf("Enter the student ID: ");
-                            scanf("%d", &id);
 
-                            defragmentation_fichier_chainee(ms, f, nom, id);
+                            defragmentation_fichier_chainee(ms, f, nom);
 
                             fclose(ms);
                             fclose(f);
@@ -1228,7 +1227,7 @@ void add_student_to_sorted_linked_file(FILE *ms, char nom[20],Tetudiant x) {
     printf("DEBUG: Insertion completed successfully\n");
 }
 
-void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id) {
+void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20]) {
     BLOC_meta bloCmeta;
     BLOC_ch buffer, tempBuffer;
     FDmeta meta;
@@ -1236,99 +1235,96 @@ void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20], int id) {
     int allocationTable[NbBloc];
 
 
-    // Localiser les métadonnées en fonction du nom du fichier
+    // Locate metadata based on the file name
     fseek(ms, NbBloc * sizeof(int), SEEK_SET);
     blocmetacount = 0;
     while (!trouv && fread(&bloCmeta, sizeof(BLOC_meta), 1, ms)) {
         for (i = 0; i < bloCmeta.ne; i++) {
-            printf("Vérification du fichier : %s\n", bloCmeta.t[i].FDnom);
+            printf("Checking file: %s\n", bloCmeta.t[i].FDnom);
             if (strcmp(bloCmeta.t[i].FDnom, nom) == 0) {
                 trouv = 1;
                 meta = bloCmeta.t[i];
                 metaIndex = i;
                 blocmetaindex = blocmetacount;
-                printf("Fichier trouvé : %s (Index : %d, BlocMetaIndex : %d)\n", nom, metaIndex, blocmetaindex);
+                printf("File found: %s (Index: %d, BlocMetaIndex: %d)\n", nom, metaIndex, blocmetaindex);
             }
         }
         blocmetacount++;
     }
 
     if (!trouv) {
-        printf("Fichier non trouvé.\n");
+        printf("File not found.\n");
         return;
     }
 
-    // Créer un tableau pour les étudiants restants
+    // Create an array for the remaining students
     Tetudiant *arr = (Tetudiant *) malloc((meta.nbEtudiant ) * sizeof(Tetudiant));
     currentAddress = meta.adresse;
     int nbetudiant = 0, blocCount = 0;
     i=0;
-    printf(" taille  %d\n", meta.taille);
-    // Parcourir les blocs du fichier
+    printf("Size: %d\n", meta.taille);
+    // Traverse the blocks of the file
     while (i<meta.taille) {
 
-        printf("Lecture du bloc à l'adresse : %d\n", currentAddress);
+        printf("Reading block at address: %d\n", currentAddress);
         fseek(ms, NbBloc * sizeof(int) + (currentAddress) * sizeof(BLOC_ch) + NbBlocmeta * sizeof(BLOC_meta), SEEK_SET);
         fread(&buffer, sizeof(BLOC_ch), 1, ms);
-        printf("Bloc lu : %d étudiants, Next : %d\n", buffer.ne, buffer.next);
+        printf("Block read: %d students, Next: %d\n", buffer.ne, buffer.next);
 
         for (int k = 0; k< buffer.ne; k++) {
-            printf("Étudiant ID : %d\n", buffer.t[k].id);
-            if (buffer.t[k].etat==1) {
+            printf("Student ID: %d\n", buffer.t[k].id);
+            if (buffer.t[k].etat == 1) {
                 arr[nbetudiant] = buffer.t[k];
                 nbetudiant++;
             }
         }
 
         if (currentAddress != meta.adresse) {
-            printf("Mise à jour de la table d'allocation pour le bloc : %d\n", currentAddress);
+            printf("Updating allocation table for block: %d\n", currentAddress);
             update_Allocation_Table(ms, currentAddress, 0);
         }
         i++;
-        printf("%d",i);
+        printf("%d", i);
         currentAddress = buffer.next;
     }
 
-    printf("Nombre total d'étudiants après defragmentation : %d\n", nbetudiant);
-    rewind(f) ;
-     i=0;
+    printf("Total number of students after defragmentation: %d\n", nbetudiant);
+    rewind(f);
+    i = 0;
     while (i < nbetudiant) {
         int j = 0;
         BLOC_ch buffer;
-        buffer.next=0 ;
+        buffer.next = 0;
         buffer.ne = 0;
         while (i < nbetudiant && j < FB) {
-
             buffer.t[j] = arr[i];
-
             buffer.ne++;
-
             i++;
             j++;
         }
         blocCount++;
 
         fwrite(&buffer, sizeof(BLOC_ch), 1, f);
-        printf("Bloc écrit : %d étudiants\n", buffer.ne);
+        printf("Block written: %d students\n", buffer.ne);
     }
 
-    // Mise à jour des métadonnées
+    // Update metadata
     meta.nbEtudiant = nbetudiant;
     meta.taille = blocCount;
     bloCmeta.t[metaIndex] = meta;
 
-    // Sauvegarder les métadonnées
+    // Save metadata
     fseek(ms, NbBloc * sizeof(int), SEEK_SET);
     fseek(ms, blocmetaindex * sizeof(BLOC_meta), SEEK_CUR);
     fwrite(&bloCmeta, sizeof(BLOC_meta), 1, ms);
 
-    printf("Méta-données mises à jour : Nombre d'étudiants = %d, Nombre de blocs = %d  adresse %d\n", meta.nbEtudiant, meta.taille,meta.adresse);
+    printf("Metadata updated: Number of students = %d, Number of blocks = %d, Address = %d\n", meta.nbEtudiant, meta.taille, meta.adresse);
 
-    // Charger le fichier en mémoire secondaire
+    // Load the file into secondary memory
     chargement_fichier_chainee(ms, f, nom);
-    printf("defragmentation terminée.\n");
-    printf("Nombre d'étudiants mis à jour : %d\n", nbetudiant);
-    printf("Nombre de blocs mis à jour : %d\n", blocCount);
+    printf("Defragmentation completed.\n");
+    printf("Number of students updated: %d\n", nbetudiant);
+    printf("Number of blocks updated: %d\n", blocCount);
 
     free(arr);
 }

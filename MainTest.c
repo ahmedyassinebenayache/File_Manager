@@ -74,7 +74,7 @@ void Search_Linked_File(FILE *ms, char name[20], int id, int p[2], int sorted);
 void Rename_File_Ch(FILE *ms, char filename[20], char new_filename[20]);
 void Delete_File_Ch(FILE *ms, char filename[20]);
 void Defragment_File_Ch(FILE *ms, FILE *f, char filename[20]);
-void Insert_Ch(FILE *ms, FILE *f, char fileName[20], int sorted);
+void add_student_to_unsorted_linked_file(FILE *ms, FILE *f, char fileName[20], Tetudiant student);
 
 // File Operations for Contiguous Allocation
 void Create_File_Co(FILE *ms, FILE *f, char filename[20], int size, int internal_mode);
@@ -259,11 +259,20 @@ int main() {
                             int sorted;
                             printf("Enter the file name: ");
                             scanf("%s", nom);
+                            // Student Infroamtions
+                            Tetudiant student;
+                            // Prompt user for new student information
+                            printf("Enter the new student's information:\n");
+                            printf("ID: ");
+                            scanf("%d", &student.id);
+                            printf("Name: ");
+                            scanf(" %[^\n]", student.nom);
+                            printf("Surname: ");
+                            scanf(" %[^\n]", student.prenom);
+                            printf("Section: ");
+                            scanf(" %[^\n]", student.sec);
 
-                            printf("Is the file sorted? (1 for yes, 0 for no): ");
-                            scanf("%d", &sorted);
-
-                            Insert_Ch(ms, f, nom, sorted);
+                            add_student_to_unsorted_linked_file(ms, f, nom, student);
 
                             fclose(ms);
                             fclose(f);
@@ -947,19 +956,25 @@ void Search_Linked_File(FILE *ms, char name[20], int id, int p[2], int sorted) {
     }
 }
 
-void Insert_Ch(FILE *ms, FILE *f, char fileName[20], int sorted) {
-    Tetudiant student;
+void add_student_to_unsorted_linked_file(FILE *ms, FILE *f, char fileName[20], Tetudiant student) {
     BLOC_ch buffer1, buffer2;
-    fseek(ms, NbBloc * sizeof(int), SEEK_SET);
     BLOC_meta bloCmeta;
     FDmeta meta;
-    int indexmeta, blockNumber = 0, metaBlockIndex, metaNumber = 0, found = 0;
+    int indexmeta = -1, blockNumber = 0, metaBlockIndex = 0, metaNumber = 0, found = 0;
 
-    // Search for metadata in the MS using the file name
-    while (!found && blockNumber <= NbBlocmeta) {
+    printf("Debug: Starting the function.\n");
+
+    // Search for metadata matching the file name
+    do {
+        printf("Debug: Searching in block %d.\n", blockNumber);
+        fseek(ms, blockNumber * sizeof(BLOC_meta) + NbBloc * sizeof(int), SEEK_SET);
         fread(&bloCmeta, sizeof(BLOC_meta), 1, ms);
-        for (metaNumber = 0; metaNumber < bloCmeta.ne; metaNumber++) {
+        printf("Debug: Read metadata block %d.\n", blockNumber);
+
+        for (metaNumber = 0; metaNumber < bloCmeta.ne; ++metaNumber) {
+            printf("Debug: Checking metadata entry %d.\n", metaNumber);
             if (strcmp(bloCmeta.t[metaNumber].FDnom, fileName) == 0) {
+                printf("Debug: Found matching metadata for file '%s'.\n", fileName);
                 found = 1;
                 indexmeta = metaNumber;
                 meta = bloCmeta.t[metaNumber];
@@ -968,130 +983,93 @@ void Insert_Ch(FILE *ms, FILE *f, char fileName[20], int sorted) {
             }
         }
         blockNumber++;
-    }
+    } while (!found && blockNumber < NbBlocmeta);
 
     if (!found) {
-        printf("The file does not exist.\n");
+        printf("Debug: File '%s' does not exist.\n", fileName);
         return;
     }
-    printf("The file exists.\n");
 
-    // Prompt user for new student information
-    printf("Enter the new student's information:\n");
-    printf("ID: ");
-    scanf("%d", &student.id);
-    printf("Name: ");
-    scanf(" %[^\n]", student.nom);
-    printf("Surname: ");
-    scanf(" %[^\n]", student.prenom);
-    printf("Section: ");
-    scanf(" %[^\n]", student.sec);
+    printf("Debug: File '%s' exists. Metadata found.\n", fileName);
 
-    // Print the information being inserted
-    printf("Inserting student with ID: %d, Name: %s, Surname: %s, Section: %s\n",
-           student.id, student.nom, student.prenom, student.sec);
+    int p = meta.adresse;
 
-    if (sorted) {
-        // Sorted insertion
-        fseek(ms, NbBloc * sizeof(int) + (meta.adresse) * sizeof(BLOC_ch), SEEK_SET);
-
-        meta.nbEtudiant++;
-        meta.taille = ceil((double)meta.nbEtudiant / FB);
-        Tetudiant A[meta.nbEtudiant];
-        int j = 0;
-
-        // Read all blocks and copy their data into the temporary array A
+    // Traverse to the last block
+    while (p != -1) {
+        printf("Debug: Traversing to block %d.\n", p);
+        fseek(ms, p * sizeof(BLOC_ch) + NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_meta), SEEK_SET);
         fread(&buffer1, sizeof(BLOC_ch), 1, ms);
-        while (buffer1.next != -1) {
-            for (int i = 0; i < buffer1.ne; ++i) {
-                A[j] = buffer1.t[i];
-                j++;
-            }
-            fseek(ms, NbBloc * sizeof(int) + (buffer1.next) * sizeof(BLOC_ch), SEEK_SET);
-            fread(&buffer1, sizeof(BLOC_ch), 1, ms);
-        }
-
-        // Insert the new student (student) into the correct position in the sorted array
-        int i = 0;
-        while (i < meta.nbEtudiant - 1 && A[i].id < student.id) {
-            i++;
-        }
-        for (j = meta.nbEtudiant - 1; j > i; j--) {
-            A[j] = A[j - 1];
-        }
-        A[i] = student;
-
-        // Write back the sorted array into the blocks
-        j = 0;
-        fseek(ms, NbBloc * sizeof(int) + (meta.adresse) * sizeof(BLOC_ch), SEEK_SET);
-        int previous;
-        while (buffer1.next != -1) {
-            previous = buffer1.next;
-            for (int k = 0; k < buffer1.ne; ++k) {
-                buffer1.t[k] = A[j];
-                j++;
-            }
-            fseek(ms, NbBloc * sizeof(int) + (buffer1.next) * sizeof(BLOC_ch), SEEK_SET);
-            fwrite(&buffer1, sizeof(BLOC_ch), 1, ms);
-            fread(&buffer1, sizeof(BLOC_ch), 1, ms);
-        }
-        if (j != meta.nbEtudiant) {
-            buffer1.ne = 0;
-            while (j < meta.nbEtudiant && buffer1.ne < FB) {
-                buffer1.t[buffer1.ne] = A[j];
-                j++;
-                buffer1.ne++;
-            }
-            if (buffer1.ne == FB) {
-                buffer1.next = allouer(ms);
-                update_Allocation_Table(ms, buffer1.next, 1);
-            } else {
-                buffer1.next = -1;
-            }
-            fseek(ms, NbBloc * sizeof(int) + (previous) * sizeof(BLOC_ch), SEEK_SET);
-            fwrite(&buffer1, sizeof(BLOC_ch), 1, ms);
-        }
-    } else {
-        // Unsorted insertion
-        int p = meta.adresse;
-
-        while (p != -1) {
-            fseek(ms, p * sizeof(BLOC_ch) + NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_ch), SEEK_SET);
-            fread(&buffer1, sizeof(BLOC_ch), 1, ms);
-            p = buffer1.next;
-        }
-
-        if (buffer1.ne < FB) {
-            buffer1.t[buffer1.ne] = student;
-            buffer1.ne++;
-            fseek(ms, -1 * sizeof(BLOC_ch), SEEK_CUR);
-            fwrite(&buffer1, sizeof(BLOC_ch), 1, ms);
-            bloCmeta.t[indexmeta].nbEtudiant++;
-            fseek(ms, metaBlockIndex * sizeof(BLOC_meta) + NbBloc * sizeof(int), SEEK_SET);
-            fwrite(&bloCmeta, sizeof(BLOC_meta), 1, ms);
-            fseek(f, (meta.taille - 1) * sizeof(BLOC_ch), SEEK_SET);
-            fwrite(&buffer1, sizeof(BLOC_ch), 1, f);
-        } else {
-            buffer1.next = allouer(ms);
-            update_Allocation_Table(ms, buffer1.next, 1);
-            fseek(ms, -1 * sizeof(BLOC_ch), SEEK_CUR);
-            fwrite(&buffer1, sizeof(BLOC_ch), 1, ms);
-            p = buffer1.next;
-
-            buffer2.t[0] = student;
-            buffer2.ne = 1;
-            buffer2.next = -1;
-            fseek(ms, p * sizeof(BLOC_ch) + NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_ch), SEEK_SET);
-            fwrite(&buffer2, sizeof(BLOC_ch), 1, ms);
-            bloCmeta.t[indexmeta].nbEtudiant++;
-            bloCmeta.t[indexmeta].taille++;
-            fseek(ms, metaBlockIndex * sizeof(BLOC_meta) + NbBloc * sizeof(int), SEEK_SET);
-            fwrite(&bloCmeta, sizeof(BLOC_meta), 1, ms);
-            fseek(f, meta.taille * sizeof(BLOC_ch), SEEK_SET);
-            fwrite(&buffer2, sizeof(BLOC_ch), 1, f);
-        }
+        printf("Debug: Read block %d with %d entries.\n", p, buffer1.ne);
+        if (buffer1.next == -1) break; // Stop if this is the last block
+        p = buffer1.next;
     }
 
-    // Return to the linked menu
-    printf("Returning to the linked menu...\n");
+    if (buffer1.ne < FB) {
+        // If there's space in the last block, add the student
+        printf("Debug: Adding student to the current block.\n");
+        buffer1.t[buffer1.ne] = student;
+        buffer1.ne++;
+
+        printf("Debug: Student added. ID: %d, Name: %s, Surname: %s, Section: %s\n",
+               student.id, student.nom, student.prenom, student.sec);
+
+        // Update MS
+        fseek(ms, -sizeof(BLOC_ch), SEEK_CUR);
+        fwrite(&buffer1, sizeof(BLOC_ch), 1, ms);
+        printf("Debug: Updated the block in MS.\n");
+
+        // Update metadata
+        bloCmeta.t[indexmeta].nbEtudiant++;
+        fseek(ms, metaBlockIndex * sizeof(BLOC_meta) + NbBloc * sizeof(int), SEEK_SET);
+        fwrite(&bloCmeta, sizeof(BLOC_meta), 1, ms);
+        printf("Debug: Updated metadata. Total students: %d.\n", bloCmeta.t[indexmeta].nbEtudiant);
+
+        // Update F
+        fseek(f, p * sizeof(BLOC_ch), SEEK_SET);
+        fwrite(&buffer1, sizeof(BLOC_ch), 1, f);
+        printf("Debug: Updated the block in file F.\n");
+    } else {
+        // If the last block is full, allocate a new block and link it
+        printf("Debug: Current block is full. Allocating a new block.\n");
+        int newBlock = Manage_Storage_Space_Ch(ms, 1); // Function to allocate a new block
+        if (newBlock == -1) {
+            printf("Error: Unable to allocate new block. Disk may be full.\n");
+            return;
+        }
+        buffer1.next = newBlock;
+        printf("Debug: Allocated new block at position %d.\n", buffer1.next);
+        update_Allocation_Table(ms, buffer1.next, 1);
+
+        // Update the previous block to point to the new block
+        fseek(ms, -sizeof(BLOC_ch), SEEK_CUR);
+        fwrite(&buffer1, sizeof(BLOC_ch), 1, ms);
+        printf("Debug: Updated the previous block to point to the new block.\n");
+
+        // Initialize the new block
+        buffer2.ne = 1;
+        buffer2.t[0] = student;
+        buffer2.next = -1;
+
+        printf("Debug: Student added to new block. ID: %d, Name: %s, Surname: %s, Section: %s\n",
+               student.id, student.nom, student.prenom, student.sec);
+
+        // Write new block to MS
+        fseek(ms, newBlock * sizeof(BLOC_ch) + NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_meta), SEEK_SET);
+        fwrite(&buffer2, sizeof(BLOC_ch), 1, ms);
+        printf("Debug: Wrote the new block to MS.\n");
+
+        // Update metadata
+        bloCmeta.t[indexmeta].nbEtudiant++;
+        bloCmeta.t[indexmeta].taille++;
+        fseek(ms, metaBlockIndex * sizeof(BLOC_meta) + NbBloc * sizeof(int), SEEK_SET);
+        fwrite(&bloCmeta, sizeof(BLOC_meta), 1, ms);
+        printf("Debug: Updated metadata. Total blocks: %d.\n", bloCmeta.t[indexmeta].taille);
+
+        // Update F
+        fseek(f, newBlock * sizeof(BLOC_ch), SEEK_SET);
+        fwrite(&buffer2, sizeof(BLOC_ch), 1, f);
+        printf("Debug: Wrote the new block to file F.\n");
+    }
+
+    printf("Debug: Function completed.\n");
 }

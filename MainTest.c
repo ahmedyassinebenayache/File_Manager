@@ -1,4 +1,5 @@
 // Libraries
+#include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -96,599 +97,108 @@ void Suppression_Enregistrement_logique_co(FILE *MS, int ID_SUPP_Tetudiant, char
 void Suppression_Enregistrement_physic_co(FILE *MS, int ID_SUPP_Tetudiant, char file_name[30]);                         // record from contiguous file: (Physical & Logical)
 void Compact_Disk_Co(FILE *ms);
 
-// Main prototypes functions
-void display_main_menu() {
-    printf("Choose an option:\n");
-    printf("1. Linked Storage\n");
-    printf("2. Contiguous Storage\n");
-    printf("3. < Exit >\n");
-}
+// Callback function prototypes for linked storage actions
+void on_action_initialize_linked_storage(GtkWidget *widget, gpointer data);
+void on_action_empty_linked_storage(GtkWidget *widget, gpointer data);
+void on_action_create_linked_file(GtkWidget *widget, gpointer data);
+void on_action_load_linked_file(GtkWidget *widget, gpointer data);
+void on_action_display_linked_file(GtkWidget *widget, gpointer data);
+void on_action_rename_linked_file(GtkWidget *widget, gpointer data);
+void on_action_delete_linked_file(GtkWidget *widget, gpointer data);
+void on_action_insert_linked_file(GtkWidget *widget, gpointer data);
+void on_action_defragment_linked_file(GtkWidget *widget, gpointer data);
+void on_action_search_linked_file(GtkWidget *widget, gpointer data);
+void on_action_delete_record_linked_file(GtkWidget *widget, gpointer data);
 
-void display_linked_actions() {
-    printf("Choose an action for linked storage:\n");
-    printf("1. Initialize linked storage\n");
-    printf("2. Empty linked storage\n");
-    printf("3. Create linked file (Sorted & Unsorted)\n");
-    printf("4. Load linked file\n");
-    printf("5. Display linked file\n");
-    printf("6. Rename linked file\n");
-    printf("7. Delete linked file\n");
-    printf("8. Add to linked list (Sorted & Unsorted)\n");
-    printf("9. Defragment a linked file\n");
-    printf("10. Search in linked file (Sorted & Unsorted)\n");
-    printf("11. Delete record from linked file (Physical & Logical)\n");
-    printf("12. < Return >\n");
-}
-
-void display_contiguous_actions() {
-    printf("Choose an action for contiguous storage:\n");
-    printf("1. Initialize contiguous storage\n");
-    printf("2. Empty contiguous storage\n");
-    printf("3. Create contiguous file (Sorted & Unsorted)\n");
-    printf("4. Load contiguous file\n");
-    printf("5. Display contiguous file\n");
-    printf("6. Rename contiguous file\n");
-    printf("7. Delete contiguous file\n");
-    printf("8. Add to contiguous list (Sorted & Unsorted)\n");
-    printf("9. Defragment a contiguous file\n");
-    printf("10. Search in contiguous file (Sorted & Unsorted)\n");
-    printf("11. Delete record from contiguous file (Physical & Logical)\n");
-    printf("12. < Return >\n");
-}
+// Callback function prototypes for contiguous storage actions
+void on_action_initialize_contiguous_storage(GtkWidget *widget, gpointer data);
+void on_action_empty_contiguous_storage(GtkWidget *widget, gpointer data);
+void on_action_create_contiguous_file(GtkWidget *widget, gpointer data);
+void on_action_load_contiguous_file(GtkWidget *widget, gpointer data);
+void on_action_display_contiguous_file(GtkWidget *widget, gpointer data);
+void on_action_rename_contiguous_file(GtkWidget *widget, gpointer data);
+void on_action_delete_contiguous_file(GtkWidget *widget, gpointer data);
+void on_action_insert_contiguous_file(GtkWidget *widget, gpointer data);
+void on_action_defragment_contiguous_file(GtkWidget *widget, gpointer data);
+void on_action_search_contiguous_file(GtkWidget *widget, gpointer data);
+void on_action_delete_record_contiguous_file(GtkWidget *widget, gpointer data);
 
 // Main function
-// Main function
-int main() {
-    int choice;
-    int exit_program = 0;
-
-    while (!exit_program) {
-        display_main_menu();
-        scanf("%d", &choice);
-
-        switch (choice) {
-            case 1: {  // Linked Storage
-                int linked_action;
-                while (1) {
-                    display_linked_actions();
-                    scanf("%d", &linked_action);
-                    if (linked_action == 12) break; // < Return >
-                    switch (linked_action) {
-                        case 1: {
-                            FILE *ms = fopen("linked_storage.dat", "wb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-                            printf("Initializing disk for linked storage...\n");
-                            Initialize_Disk_Ch(ms);
-                            printf("Disk initialized for linked storage.\n");
-                            fclose(ms);
-                            break;
-                        }
-                        case 2: {
-                            FILE *ms = fopen("linked_storage.dat", "wb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-                            printf("Emptying linked storage...\n");
-                            empty_MS_Ch(ms);
-                            printf("Linked storage emptied.\n");
-                            fclose(ms);
-                            break;
-                        }
-                        case 3: {
-                            FILE *ms = fopen("linked_storage.dat", "rb+");
-                            if (ms == NULL) {
-                                printf("Error opening linked storage file.\n");
-                                break;
-                            }
-
-                            FILE *f = fopen("students.dat", "wb+");
-                            if (f == NULL) {
-                                printf("Error opening students file.\n");
-                                fclose(ms);
-                                break;
-                            }
-
-                            int nbEtudiant;
-                            char nom[20];
-                            int sorted;
-
-                            printf("Enter the number of students: ");
-                            if (scanf("%d", &nbEtudiant) != 1) {
-                                printf("Invalid input.\n");
-                                fclose(ms);
-                                fclose(f);
-                                break;
-                            }
-                            getchar(); // Clear the buffer
-
-                            printf("Enter the file name: ");
-                            if (fgets(nom, sizeof(nom), stdin) == NULL) {
-                                printf("Error reading file name.\n");
-                                fclose(ms);
-                                fclose(f);
-                                break;
-                            }
-                            nom[strcspn(nom, "\n")] = '\0'; // Remove the newline
-
-                            printf("Choose file type (0 for unsorted, 1 for sorted): ");
-                            if (scanf("%d", &sorted) != 1 || (sorted != 0 && sorted != 1)) {
-                                printf("Invalid input.\n");
-                                fclose(ms);
-                                fclose(f);
-                                break;
-                            }
-
-                            Creer_du_fichierchainee(ms, f, nbEtudiant, nom, sorted);
-
-                            fclose(ms);
-                            fclose(f);
-                            break;
-                        }
-                        case 4: {
-                            printf("Loading a linked file...\n");
-                            FILE *ms = fopen("linked_storage.dat", "rb+");
-                            FILE *f = fopen("students.dat", "rb+");
-                            if (ms == NULL || f == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            char nom[20];
-                            printf("Enter the file name to load: ");
-                            scanf("%s", nom);
-
-                            chargement_fichier_chainee(ms, f, nom);
-
-                            fclose(ms);
-                            fclose(f);
-                            break;
-                        }
-                        case 5: {
-                            printf("Displaying a linked file...\n");
-                            FILE *ms = fopen("linked_storage.dat", "rb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            char nom[20];
-                            printf("Enter the file name to display: ");
-                            scanf("%s", nom);
-
-                            Displayfile(ms, nom);
-
-                            fclose(ms);
-                            break;
-                        }
-                        case 6: {
-                            printf("Renaming a linked file...\n");
-                            FILE *ms = fopen("linked_storage.dat", "rb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            char nom[20];
-                            char nouveaunom[20];
-                            printf("Enter the current file name: ");
-                            scanf("%s", nom);
-
-                            printf("Enter the new file name: ");
-                            scanf("%s", nouveaunom);
-
-                            Rename_File_Ch(ms, nom, nouveaunom);
-
-                            fclose(ms);
-                            break;
-                        }
-                        case 7: {
-                            printf("Deleting a linked file...\n");
-                            FILE *ms = fopen("linked_storage.dat", "rb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            char nom[20];
-                            printf("Enter the file name to delete: ");
-                            scanf("%s", nom);
-
-                            supprime_fichier_chainee(ms, nom);
-
-                            fclose(ms);
-                            break;
-                        }
-                        case 8: {
-                            printf("Inserting into a linked file...\n");
-                            FILE *ms = fopen("linked_storage.dat", "rb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            char nom[20];
-                            int sorted;
-                            printf("Enter the file name: ");
-                            scanf("%s", nom);
-
-                            printf("Do you want to insert in sorted or unsorted order? (0 for unsorted, 1 for sorted): ");
-                            scanf("%d", &sorted);
-
-                            // Student Information
-                            Tetudiant student;
-                            student.etat = 1;
-                            // Prompt user for new student information
-                            printf("Enter the new student's information:\n");
-                            printf("ID: ");
-                            scanf("%d", &student.id);
-                            printf("Name: ");
-                            scanf(" %s[^\n]", student.nom);
-                            printf("Surname: ");
-                            scanf(" %s[^\n]", student.prenom);
-                            printf("Section: ");
-                            scanf(" %c[^\n]", student.sec);
-
-                            if (sorted) {
-                                add_student_to_sorted_linked_file(ms, nom, student);
-                            } else {
-                                add_student_to_unsorted_linked_file(ms, nom, student);
-                            }
-
-                            fclose(ms);
-                            break;
-                        }
-                        case 9: {
-                            printf("Defragmenting a linked file...\n");
-                            FILE *ms = fopen("linked_storage.dat", "rb+");
-                            FILE *f = fopen("students.dat", "rb+");
-                            if (ms == NULL || f == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            char nom[20];
-                            printf("Enter the file name: ");
-                            scanf("%s", nom);
-
-                            defragmentation_fichier_chainee(ms, f, nom);
-
-                            fclose(ms);
-                            fclose(f);
-                            break;
-                        }
-                        case 10: {
-                            printf("Searching in a linked file...\n");
-                            FILE *ms = fopen("linked_storage.dat", "rb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            int id;
-                            char nom[20];
-                            int sorted;
-                            int pos[2];
-                            printf("Enter the file name: ");
-                            scanf("%s", nom);
-
-                            printf("Enter the student ID to search: ");
-                            scanf("%d", &id);
-
-                            printf("Is the file sorted? (1 for yes, 0 for no): ");
-                            scanf("%d", &sorted);
-
-                            Search_Linked_File(ms, nom, id, pos, sorted);
-
-                            fclose(ms);
-                            break;
-                        }
-                        case 11: {
-                            printf("Deleting a record from a linked file...\n");
-                            FILE *ms = fopen("linked_storage.dat", "rb+");
-                            FILE *f = fopen("students.dat", "rb+");
-                            if (ms == NULL || f == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            char nom[20];
-                            int id, delete_type;
-                            printf("Enter the file name: ");
-                            scanf("%s", nom);
-
-                            printf("Enter the student ID to delete: ");
-                            scanf("%d", &id);
-
-                            printf("Choose deletion type (0 for logical, 1 for physical): ");
-                            scanf("%d", &delete_type);
-
-                            if (delete_type == 0) {
-                                logical_deletion_from_linked_file(ms, f, nom, id);
-                            } else if (delete_type == 1) {
-                                physical_deletion_from_linked_file(ms, f, nom, id);
-                            } else {
-                                printf("Invalid deletion type!\n");
-                            }
-
-                            fclose(ms);
-                            fclose(f);
-                            break;
-                        }
-                        default:
-                            printf("Invalid action!\n");
-                    }
-                }
-                break;
-            }
-            case 2: {  // Contiguous Storage
-                int contiguous_action;
-                while (1) {
-                    display_contiguous_actions();
-                    scanf("%d", &contiguous_action);
-                    if (contiguous_action == 12) break; // < Return >
-                    switch (contiguous_action) {
-                        case 1: {
-                            FILE *ms = fopen("contiguous_storage.dat", "wb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-                            printf("Initializing disk for contiguous storage...\n");
-                            Initialize_Disk_Co(ms);
-                            printf("Disk initialized for contiguous storage.\n");
-                            fclose(ms);
-                            break;
-                        }
-                        case 2: {
-                            FILE *ms = fopen("contiguous_storage.dat", "wb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-                            printf("Emptying contiguous storage...\n");
-                            empty_MS_Ch(ms); // Assuming same function can be used for contiguous storage
-                            printf("Contiguous storage emptied.\n");
-                            fclose(ms);
-                            break;
-                        }
-                        case 3: {
-                            printf("Creating a contiguous file...\n");
-                            FILE *ms = fopen("contiguous_storage.dat", "rb+");
-                            if (ms == NULL) {
-                                printf("Error opening contiguous storage file.\n");
-                                break;
-                            }
-
-                            FILE *f = fopen("students.dat", "wb+");
-                            if (f == NULL) {
-                                printf("Error opening students file.\n");
-                                fclose(ms);
-                                break;
-                            }
-
-                            int nbEtudiant;
-                            char nom[20];
-                            int sorted;
-
-                            printf("Enter the number of students: ");
-                            if (scanf("%d", &nbEtudiant) != 1) {
-                                printf("Invalid input.\n");
-                                fclose(ms);
-                                fclose(f);
-                                break;
-                            }
-                            getchar(); // Clear the buffer
-
-                            printf("Enter the file name: ");
-                            if (fgets(nom, sizeof(nom), stdin) == NULL) {
-                                printf("Error reading file name.\n");
-                                fclose(ms);
-                                fclose(f);
-                                break;
-                            }
-                            nom[strcspn(nom, "\n")] = '\0'; // Remove the newline
-
-                            printf("Choose file type (0 for unsorted, 1 for sorted): ");
-                            if (scanf("%d", &sorted) != 1 || (sorted != 0 && sorted != 1)) {
-                                printf("Invalid input.\n");
-                                fclose(ms);
-                                fclose(f);
-                                break;
-                            }
-
-                            creer_un_fichier_co(ms, f, nom, nbEtudiant, sorted);
-
-                            fclose(ms);
-                            fclose(f);
-                            break;
-                        }
-                        case 4: {
-                            printf("Loading a contiguous file...\n");
-                            FILE *ms = fopen("contiguous_storage.dat", "rb+");
-                            FILE *f = fopen("students.dat", "rb+");
-                            if (ms == NULL || f == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            char nom[20];
-                            printf("Enter the file name to load: ");
-                            scanf("%s", nom);
-
-                            chargerFichier_co(ms, f, nom);
-
-                            fclose(ms);
-                            fclose(f);
-                            break;
-                        }
-                        case 5: {
-                            printf("Displaying a contiguous file...\n");
-                            FILE *ms = fopen("contiguous_storage.dat", "rb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            char nom[20];
-                            printf("Enter the file name to display: ");
-                            scanf("%s", nom);
-
-                            Display_fichier_co(ms, nom);
-
-                            fclose(ms);
-                            break;
-                        }
-                        case 6: {
-                            printf("Renaming a contiguous file...\n");
-                            FILE *ms = fopen("contiguous_storage.dat", "rb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            char nom[20];
-                            char nouveaunom[20];
-                            printf("Enter the current file name: ");
-                            scanf("%s", nom);
-
-                            printf("Enter the new file name: ");
-                            scanf("%s", nouveaunom);
-
-                            Rename_File_Ch(ms, nom, nouveaunom);
-
-                            fclose(ms);
-                            break;
-                        }
-                        case 7: {
-                            printf("Deleting a contiguous file...\n");
-                            FILE *ms = fopen("contiguous_storage.dat", "rb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            char nom[20];
-                            printf("Enter the file name to delete: ");
-                            scanf("%s", nom);
-
-                            supprime_fichier_contigue(ms, nom);
-
-                            fclose(ms);
-                            break;
-                        }
-                        case 8: {
-                            printf("Inserting into a contiguous file...\n");
-                            FILE *ms = fopen("contiguous_storage.dat", "rb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            char nom[20];
-                            printf("Enter the file name: ");
-                            scanf("%s", nom);
-
-                            // Assuming insertion_co is a function that handles the insertion process
-                            insertion_co(ms, nom);
-
-                            fclose(ms);
-                            break;
-                        }
-                        case 9: {
-                            printf("Defragmenting a contiguous file...\n");
-                            FILE *ms = fopen("contiguous_storage.dat", "rb+");
-                            FILE *f = fopen("students.dat", "rb+");
-                            if (ms == NULL || f == NULL) {
-                                printf("Error opening file.\n");
-                                if (ms != NULL) fclose(ms);
-                                if (f != NULL) fclose(f);
-                                break;
-                            }
-
-                            char nom[20];
-                            printf("Enter the file name: ");
-                            scanf("%s", nom);
-
-                            defragmentation_co(ms, f, nom);
-
-                            fclose(ms);
-                            fclose(f);
-                            break;
-                        }
-                        case 10: {
-                            printf("Searching in a contiguous file...\n");
-                            FILE *ms = fopen("contiguous_storage.dat", "rb+");
-                            if (ms == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            int id;
-                            char nom[20];
-                            Position Pos;
-
-                            printf("Enter the file name: ");
-                            scanf("%s", nom);
-
-                            printf("Enter the student ID to search: ");
-                            scanf("%d", &id);
-
-                            Recherche_co(ms, id, nom, &Pos.nbrbloc, &Pos.mov);
-
-                            fclose(ms);
-                            break;
-                        }
-                        case 11: {
-                            printf("Deleting a record from a contiguous file...\n");
-                            FILE *ms = fopen("contiguous_storage.dat", "rb+");
-                            FILE *f = fopen("students.dat", "rb+");
-                            if (ms == NULL || f == NULL) {
-                                printf("Error opening file.\n");
-                                break;
-                            }
-
-                            char nom[20];
-                            int id, delete_type;
-                            printf("Enter the file name: ");
-                            scanf("%s", nom);
-
-                            printf("Enter the student ID to delete: ");
-                            scanf("%d", &id);
-
-                            printf("Choose deletion type (0 for logical, 1 for physical): ");
-                            scanf("%d", &delete_type);
-
-                            if (delete_type == 0) {
-                                Suppression_Enregistrement_logique_co(ms, id, nom);
-                            } else if (delete_type == 1) {
-                                Suppression_Enregistrement_physic_co(ms, id, nom);
-                            } else {
-                                printf("Invalid deletion type!\n");
-                            }
-
-                            fclose(ms);
-                            fclose(f);
-                            break;
-                        }
-                        default:
-                            printf("Invalid action!\n");
-                    }
-                }
-                break;
-            }
-            case 3:
-                exit_program = 1;
-                break;
-            default:
-                printf("Invalid choice!\n");
-        }
-    }
-
-    return 0;
+static void activate(GtkApplication *app, gpointer user_data) {
+    GtkWidget *window;
+    GtkWidget *vbox;
+    GtkWidget *menubar;
+
+    // Create main window
+    window = gtk_application_window_new(app);
+    gtk_window_set_title(GTK_WINDOW(window), "File Management System");
+    gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
+
+    // Create vertical box layout
+    vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_window_set_child(GTK_WINDOW(window), vbox);
+
+    // Create menu bar
+    menubar = gtk_menu_bar_new();
+    gtk_box_append(GTK_BOX(vbox), menubar);
+
+    // Create Linked Storage menu
+    GtkWidget *linked_menu_item = gtk_menu_item_new_with_label("Linked Storage");
+    GtkWidget *linked_menu = gtk_menu_new();
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(linked_menu_item), linked_menu);
+    gtk_menu_bar_append(GTK_MENU_BAR(menubar), linked_menu_item);
+
+    GtkWidget *linked_menu_initialize = gtk_menu_item_new_with_label("Initialize Linked Storage");
+    g_signal_connect(linked_menu_initialize, "activate", G_CALLBACK(on_action_initialize_linked_storage), NULL);
+    gtk_menu_shell_append(GTK_MENU_SHELL(linked_menu), linked_menu_initialize);
+
+    GtkWidget *linked_menu_empty = gtk_menu_item_new_with_label("Empty Linked Storage");
+    g_signal_connect(linked_menu_empty, "activate", G_CALLBACK(on_action_empty_linked_storage), NULL);
+    gtk_menu_shell_append(GTK_MENU_SHELL(linked_menu), linked_menu_empty);
+
+    GtkWidget *linked_menu_create = gtk_menu_item_new_with_label("Create Linked File");
+    g_signal_connect(linked_menu_create, "activate", G_CALLBACK(on_action_create_linked_file), NULL);
+    gtk_menu_shell_append(GTK_MENU_SHELL(linked_menu), linked_menu_create);
+
+    // Add other Linked Storage menu items similarly...
+
+    // Create Contiguous Storage menu
+    GtkWidget *contiguous_menu_item = gtk_menu_item_new_with_label("Contiguous Storage");
+    GtkWidget *contiguous_menu = gtk_menu_new();
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(contiguous_menu_item), contiguous_menu);
+    gtk_menu_bar_append(GTK_MENU_BAR(menubar), contiguous_menu_item);
+
+    GtkWidget *contiguous_menu_initialize = gtk_menu_item_new_with_label("Initialize Contiguous Storage");
+    g_signal_connect(contiguous_menu_initialize, "activate", G_CALLBACK(on_action_initialize_contiguous_storage), NULL);
+    gtk_menu_shell_append(GTK_MENU_SHELL(contiguous_menu), contiguous_menu_initialize);
+
+    GtkWidget *contiguous_menu_empty = gtk_menu_item_new_with_label("Empty Contiguous Storage");
+    g_signal_connect(contiguous_menu_empty, "activate", G_CALLBACK(on_action_empty_contiguous_storage), NULL);
+    gtk_menu_shell_append(GTK_MENU_SHELL(contiguous_menu), contiguous_menu_empty);
+
+    GtkWidget *contiguous_menu_create = gtk_menu_item_new_with_label("Create Contiguous File");
+    g_signal_connect(contiguous_menu_create, "activate", G_CALLBACK(on_action_create_contiguous_file), NULL);
+    gtk_menu_shell_append(GTK_MENU_SHELL(contiguous_menu), contiguous_menu_create);
+
+    // Add other Contiguous Storage menu items similarly...
+
+    // Show the window
+    gtk_window_present(GTK_WINDOW(window));
+}
+
+int main(int argc, char *argv[]) {
+    GtkApplication *app;
+    int status;
+
+    // Create a new GtkApplication
+    app = gtk_application_new("com.example.filemanagement", G_APPLICATION_FLAGS_NONE);
+    g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
+
+    // Run the application
+    status = g_application_run(G_APPLICATION(app), argc, argv);
+
+    g_object_unref(app);
+    return status;
 }
 
 // Operations for Chained
@@ -2814,3 +2324,1026 @@ void Compact_Disk_Co(FILE *ms){
     fwrite(Allocation_Table, NbBloc * sizeof(int), 1, ms);
 }
 
+// Callback functions for linked storage actions
+void on_action_initialize_linked_storage(GtkWidget *widget, gpointer data) {
+    FILE *ms = fopen("linked_storage.dat", "wb+");
+    if (ms == NULL) {
+        g_print("Error opening file.\n");
+        return;
+    }
+    g_print("Initializing disk for linked storage...\n");
+    Initialize_Disk_Ch(ms);
+    g_print("Disk initialized for linked storage.\n");
+    fclose(ms);
+}
+
+void on_action_empty_linked_storage(GtkWidget *widget, gpointer data) {
+    FILE *ms = fopen("linked_storage.dat", "wb+");
+    if (ms == NULL) {
+        g_print("Error opening file.\n");
+        return;
+    }
+    g_print("Emptying linked storage...\n");
+    empty_MS_Ch(ms);
+    g_print("Linked storage emptied.\n");
+    fclose(ms);
+}
+
+static void on_create_linked_file_response(GtkDialog *dialog, gint response_id, gpointer user_data) {
+    if (response_id == GTK_RESPONSE_OK) {
+        GtkWidget *entry_nbEtudiant = g_object_get_data(G_OBJECT(dialog), "entry_nbEtudiant");
+        GtkWidget *entry_nom = g_object_get_data(G_OBJECT(dialog), "entry_nom");
+        GtkWidget *entry_sorted = g_object_get_data(G_OBJECT(dialog), "entry_sorted");
+
+        const gchar *nbEtudiant = gtk_entry_get_text(GTK_ENTRY(entry_nbEtudiant));
+        const gchar *nom = gtk_entry_get_text(GTK_ENTRY(entry_nom));
+        const gchar *sorted = gtk_entry_get_text(GTK_ENTRY(entry_sorted));
+
+        // Validate numeric input
+        char *endptr;
+        long nbEtudiant_int = strtol(nbEtudiant, &endptr, 10);
+        if (*endptr != '\0' || nbEtudiant_int <= 0) {
+            g_print("Invalid number of students.\n");
+            gtk_widget_destroy(GTK_WIDGET(dialog));
+            return;
+        }
+
+        long sorted_int = strtol(sorted, &endptr, 10);
+        if (*endptr != '\0' || (sorted_int != 0 && sorted_int != 1)) {
+            g_print("Invalid file type. Must be 0 or 1.\n");
+            gtk_widget_destroy(GTK_WIDGET(dialog));
+            return;
+        }
+
+        FILE *ms = fopen("linked_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening linked storage file.\n");
+            gtk_widget_destroy(GTK_WIDGET(dialog));
+            return;
+        }
+
+        FILE *f = fopen("students.dat", "wb+");
+        if (f == NULL) {
+            g_print("Error opening students file.\n");
+            fclose(ms);
+            gtk_widget_destroy(GTK_WIDGET(dialog));
+            return;
+        }
+
+        // Call your function to create the linked file (replace with your actual function)
+        // Creer_du_fichierchainee(ms, f, (int)nbEtudiant_int, (char *)nom, (int)sorted_int);
+
+        fclose(ms);
+        fclose(f);
+    }
+
+    gtk_widget_destroy(GTK_WIDGET(dialog));
+}
+
+// Callback function for the "Create Linked File" action
+void on_action_create_linked_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_nbEtudiant, *entry_nom, *entry_sorted;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Create Linked File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_nbEtudiant = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_nbEtudiant), "Enter number of students");
+    gtk_box_append(GTK_BOX(content_area), entry_nbEtudiant);
+    g_object_set_data(G_OBJECT(dialog), "entry_nbEtudiant", entry_nbEtudiant);
+
+    entry_nom = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_nom), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_nom);
+    g_object_set_data(G_OBJECT(dialog), "entry_nom", entry_nom);
+
+    entry_sorted = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_sorted), "Enter file type (0 for unsorted, 1 for sorted)");
+    gtk_box_append(GTK_BOX(content_area), entry_sorted);
+    g_object_set_data(G_OBJECT(dialog), "entry_sorted", entry_sorted);
+
+    gtk_widget_show(dialog);
+
+    g_signal_connect(dialog, "response", G_CALLBACK(on_create_linked_file_response), NULL);
+}
+
+void on_action_load_linked_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Load Linked File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+
+        FILE *ms = fopen("linked_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening linked storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        FILE *f = fopen(filename, "rb");
+        if (f == NULL) {
+            g_print("Error opening file.\n");
+            fclose(ms);
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        // Load the linked file (implement your loading logic here)
+
+        fclose(ms);
+        fclose(f);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_display_linked_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Display Linked File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+
+        FILE *ms = fopen("linked_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening linked storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        // Display the linked file (implement your display logic here)
+
+        fclose(ms);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_rename_linked_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_oldname, *entry_newname;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Rename Linked File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_oldname = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_oldname), "Enter current file name");
+    gtk_box_append(GTK_BOX(content_area), entry_oldname);
+
+    entry_newname = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_newname), "Enter new file name");
+    gtk_box_append(GTK_BOX(content_area), entry_newname);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *oldname = gtk_entry_get_text(GTK_ENTRY(entry_oldname));
+        const gchar *newname = gtk_entry_get_text(GTK_ENTRY(entry_newname));
+
+        FILE *ms = fopen("linked_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening linked storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        // Rename the linked file (implement your renaming logic here)
+
+        fclose(ms);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_delete_linked_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Delete Linked File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+
+        FILE *ms = fopen("linked_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening linked storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        // Delete the linked file (implement your deletion logic here)
+
+        fclose(ms);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_insert_linked_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename, *entry_id, *entry_name, *entry_surname, *entry_section;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Insert into Linked File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    entry_id = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_id), "Enter student ID");
+    gtk_box_append(GTK_BOX(content_area), entry_id);
+
+    entry_name = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_name), "Enter student name");
+    gtk_box_append(GTK_BOX(content_area), entry_name);
+
+    entry_surname = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_surname), "Enter student surname");
+    gtk_box_append(GTK_BOX(content_area), entry_surname);
+
+    entry_section = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_section), "Enter student section");
+    gtk_box_append(GTK_BOX(content_area), entry_section);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+        const gchar *id = gtk_entry_get_text(GTK_ENTRY(entry_id));
+        const gchar *name = gtk_entry_get_text(GTK_ENTRY(entry_name));
+        const gchar *surname = gtk_entry_get_text(GTK_ENTRY(entry_surname));
+        const gchar *section = gtk_entry_get_text(GTK_ENTRY(entry_section));
+
+        // Validate numeric input for ID
+        char *endptr;
+        long id_int = strtol(id, &endptr, 10);
+        if (*endptr != '\0' || id_int <= 0) {
+            g_print("Invalid student ID.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        FILE *ms = fopen("linked_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening linked storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        // Insert the student into the linked file (implement your insertion logic here)
+
+        fclose(ms);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_defragment_linked_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Defragment Linked File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+
+        FILE *ms = fopen("linked_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening linked storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        // Defragment the linked file (implement your defragmentation logic here)
+
+        fclose(ms);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_search_linked_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename, *entry_id;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Search in Linked File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    entry_id = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_id), "Enter student ID to search");
+    gtk_box_append(GTK_BOX(content_area), entry_id);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+        const gchar *id = gtk_entry_get_text(GTK_ENTRY(entry_id));
+
+        // Validate numeric input for ID
+        char *endptr;
+        long id_int = strtol(id, &endptr, 10);
+        if (*endptr != '\0' || id_int <= 0) {
+            g_print("Invalid student ID.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        FILE *ms = fopen("linked_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening linked storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        // Search for the student in the linked file (implement your search logic here)
+
+        fclose(ms);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_delete_record_linked_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename, *entry_id;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Delete Record from Linked File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    entry_id = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_id), "Enter student ID to delete");
+    gtk_box_append(GTK_BOX(content_area), entry_id);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+        const gchar *id = gtk_entry_get_text(GTK_ENTRY(entry_id));
+
+        // Validate numeric input for ID
+        char *endptr;
+        long id_int = strtol(id, &endptr, 10);
+        if (*endptr != '\0' || id_int <= 0) {
+            g_print("Invalid student ID.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        FILE *ms = fopen("linked_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening linked storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        // Delete the student record from the linked file (implement your deletion logic here)
+
+        fclose(ms);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+// Callback functions for contiguous storage actions
+void on_action_initialize_contiguous_storage(GtkWidget *widget, gpointer data) {
+    FILE *ms = fopen("contiguous_storage.dat", "wb+");
+    if (ms == NULL) {
+        g_print("Error opening file.\n");
+        return;
+    }
+    g_print("Initializing disk for contiguous storage...\n");
+    Initialize_Disk_Co(ms);
+    g_print("Disk initialized for contiguous storage.\n");
+    fclose(ms);
+}
+
+void on_action_empty_contiguous_storage(GtkWidget *widget, gpointer data) {
+    FILE *ms = fopen("contiguous_storage.dat", "wb+");
+    if (ms == NULL) {
+        g_print("Error opening file.\n");
+        return;
+    }
+    g_print("Emptying contiguous storage...\n");
+    empty_MS_Ch(ms);  // Assuming the empty function is the same for both
+    g_print("Contiguous storage emptied.\n");
+    fclose(ms);
+}
+
+void on_action_create_contiguous_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_nbEtudiant, *entry_nom, *entry_internalmode;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Create Contiguous File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_nbEtudiant = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_nbEtudiant), "Enter number of students");
+    gtk_box_append(GTK_BOX(content_area), entry_nbEtudiant);
+
+    entry_nom = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_nom), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_nom);
+
+    entry_internalmode = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_internalmode), "Enter file type (0 for unsorted, 1 for sorted)");
+    gtk_box_append(GTK_BOX(content_area), entry_internalmode);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *nbEtudiant = gtk_entry_get_text(GTK_ENTRY(entry_nbEtudiant));
+        const gchar *nom = gtk_entry_get_text(GTK_ENTRY(entry_nom));
+        const gchar *internalmode = gtk_entry_get_text(GTK_ENTRY(entry_internalmode));
+
+        // Validate numeric input
+        char *endptr;
+        long nbEtudiant_int = strtol(nbEtudiant, &endptr, 10);
+        if (*endptr != '\0' || nbEtudiant_int <= 0) {
+            g_print("Invalid number of students.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        long internalmode_int = strtol(internalmode, &endptr, 10);
+        if (*endptr != '\0' || (internalmode_int != 0 && internalmode_int != 1)) {
+            g_print("Invalid file type. Must be 0 or 1.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        FILE *ms = fopen("contiguous_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening contiguous storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        FILE *f = fopen("students.dat", "wb+");
+        if (f == NULL) {
+            g_print("Error opening students file.\n");
+            fclose(ms);
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        creer_un_fichier_co(ms, f, (char *)nom, (int)nbEtudiant_int, (int)internalmode_int);
+
+        fclose(ms);
+        fclose(f);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_load_contiguous_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Load Contiguous File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+
+        FILE *ms = fopen("contiguous_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening contiguous storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        FILE *f = fopen(filename, "rb");
+        if (f == NULL) {
+            g_print("Error opening file.\n");
+            fclose(ms);
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        chargerFichier_co(ms, f, (char *)filename);
+
+        fclose(ms);
+        fclose(f);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_display_contiguous_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Display Contiguous File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+
+        FILE *ms = fopen("contiguous_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening contiguous storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        Display_fichier_co(ms, (char *)filename);
+
+        fclose(ms);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_rename_contiguous_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_oldname, *entry_newname;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Rename Contiguous File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_oldname = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_oldname), "Enter current file name");
+    gtk_box_append(GTK_BOX(content_area), entry_oldname);
+
+    entry_newname = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_newname), "Enter new file name");
+    gtk_box_append(GTK_BOX(content_area), entry_newname);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *oldname = gtk_entry_get_text(GTK_ENTRY(entry_oldname));
+        const gchar *newname = gtk_entry_get_text(GTK_ENTRY(entry_newname));
+
+        FILE *ms = fopen("contiguous_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening contiguous storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        Renommer_co(ms, (char *)oldname, (char *)newname);
+
+        fclose(ms);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_delete_contiguous_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Delete Contiguous File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+
+        FILE *ms = fopen("contiguous_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening contiguous storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        supprime_fichier_contigue(ms, (char *)filename);
+
+        fclose(ms);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_insert_contiguous_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename, *entry_id, *entry_name, *entry_surname, *entry_section;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Insert into Contiguous File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    entry_id = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_id), "Enter student ID");
+    gtk_box_append(GTK_BOX(content_area), entry_id);
+
+    entry_name = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_name), "Enter student name");
+    gtk_box_append(GTK_BOX(content_area), entry_name);
+
+    entry_surname = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_surname), "Enter student surname");
+    gtk_box_append(GTK_BOX(content_area), entry_surname);
+
+    entry_section = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_section), "Enter student section");
+    gtk_box_append(GTK_BOX(content_area), entry_section);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+        const gchar *id = gtk_entry_get_text(GTK_ENTRY(entry_id));
+        const gchar *name = gtk_entry_get_text(GTK_ENTRY(entry_name));
+        const gchar *surname = gtk_entry_get_text(GTK_ENTRY(entry_surname));
+        const gchar *section = gtk_entry_get_text(GTK_ENTRY(entry_section));
+
+        // Validate numeric input for ID
+        char *endptr;
+        long id_int = strtol(id, &endptr, 10);
+        if (*endptr != '\0' || id_int <= 0) {
+            g_print("Invalid student ID.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        FILE *ms = fopen("contiguous_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening contiguous storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        insertion_co(ms, (char *)filename);
+
+        fclose(ms);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_defragment_contiguous_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Defragment Contiguous File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+
+        FILE *ms = fopen("contiguous_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening contiguous storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        FILE *f = fopen("students.dat", "rb+");
+        if (f == NULL) {
+            g_print("Error opening students file.\n");
+            fclose(ms);
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        defragmentation_co(ms, f, (char *)filename);
+
+        fclose(ms);
+        fclose(f);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_search_contiguous_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename, *entry_id;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Search in Contiguous File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    entry_id = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_id), "Enter student ID to search");
+    gtk_box_append(GTK_BOX(content_area), entry_id);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+        const gchar *id = gtk_entry_get_text(GTK_ENTRY(entry_id));
+
+        // Validate numeric input for ID
+        char *endptr;
+        long id_int = strtol(id, &endptr, 10);
+        if (*endptr != '\0' || id_int <= 0) {
+            g_print("Invalid student ID.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        FILE *ms = fopen("contiguous_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening contiguous storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        int num_block, deplacement;
+        Recherche_co(ms, (int)id_int, (char *)filename, &num_block, &deplacement);
+
+        fclose(ms);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_action_delete_record_contiguous_file(GtkWidget *widget, gpointer data) {
+    GtkWidget *dialog, *content_area;
+    GtkWidget *entry_filename, *entry_id;
+    GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+
+    dialog = gtk_dialog_new_with_buttons("Delete Record from Contiguous File",
+                                         GTK_WINDOW(data),
+                                         flags,
+                                         "_OK",
+                                         GTK_RESPONSE_OK,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         NULL);
+
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    entry_filename = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_filename), "Enter file name");
+    gtk_box_append(GTK_BOX(content_area), entry_filename);
+
+    entry_id = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_id), "Enter student ID to delete");
+    gtk_box_append(GTK_BOX(content_area), entry_id);
+
+    gtk_widget_show(dialog);
+
+    gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (response == GTK_RESPONSE_OK) {
+        const gchar *filename = gtk_entry_get_text(GTK_ENTRY(entry_filename));
+        const gchar *id = gtk_entry_get_text(GTK_ENTRY(entry_id));
+
+        // Validate numeric input for ID
+        char *endptr;
+        long id_int = strtol(id, &endptr, 10);
+        if (*endptr != '\0' || id_int <= 0) {
+            g_print("Invalid student ID.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        FILE *ms = fopen("contiguous_storage.dat", "rb+");
+        if (ms == NULL) {
+            g_print("Error opening contiguous storage file.\n");
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        // Choose whether to perform logical or physical deletion
+        // Suppression_Enregistrement_logique_co(ms, (int)id_int, (char *)filename);
+        Suppression_Enregistrement_physic_co(ms, (int)id_int, (char *)filename);
+
+        fclose(ms);
+    }
+
+    gtk_widget_destroy(dialog);
+}

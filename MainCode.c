@@ -64,35 +64,36 @@ void update_Allocation_Table(FILE *ms, int block_address, int value);
 void empty_MS_Ch(FILE *ms);
 int Manage_Storage_Space_Ch(FILE *ms, int student_number);
 /* File */
-void Creer_du_fichierchainee(FILE *ms ,FILE *f,int nbEtudiant,char nom[20],int sorted);            // Option 1: Create linked file (Sorted & Unsorted)
-void chargement_fichier_chainee(FILE *ms, FILE *f, char nom[20]);                                  // Option 2: Load linked file
-void Displayfile(FILE *ms,char nom[20]);                                                           // Option 3: Display linked file
-void Rename_File_Ch(FILE *ms, char name[20], char newname[20]);                                    // Option 4: Rename linked file
-void supprime_fichier_chainee(FILE *ms, char nom[20]);                                             // Option 5: Delete linked file
-void add_student_to_unsorted_linked_file(FILE *ms, char fileName[20], Tetudiant student);          // Option 6:
-void add_student_to_sorted_linked_file(FILE *ms, char nom[20],Tetudiant x);                        // Add to linked list (Sorted & Unsorted)
-void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20]);                             // Option 7: Defragment a linked file
-void Search_Linked_File(FILE *ms, char name[20], int id, int p[2], int sorted);                    // Option 8: Search in linked file (Sorted & Unsorted)
-void physical_deletion_from_linked_file(FILE *ms, FILE *f, char name[20], int id);                 // Option 9:
-void logical_deletion_from_linked_file(FILE *ms, FILE *f, char name[20], int id);                  // Delete record from linked file
+void Creer_du_fichierchainee(FILE *ms ,FILE *f,int nbEtudiant,char nom[20],int sorted);                                 // Create linked file: (Sorted & Unsorted)
+void chargement_fichier_chainee(FILE *ms, FILE *f, char nom[20]);                                                       // Load linked file.
+void Displayfile(FILE *ms,char nom[20]);                                                                                // Display linked file.
+void Rename_File_Ch(FILE *ms, char name[20], char newname[20]);                                                         // Rename linked file.
+void supprime_fichier_chainee(FILE *ms, char nom[20]);                                                                  // Delete linked file.
+void add_student_to_unsorted_linked_file(FILE *ms, char fileName[20], Tetudiant student);                               // Add to linked list:
+void add_student_to_sorted_linked_file(FILE *ms, char nom[20],Tetudiant x);                                             // (Sorted & Unsorted)
+void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20]);                                                  // Defragment a linked file.
+void Search_Linked_File(FILE *ms, char name[20], int id, int p[2], int sorted);                                         // Search in linked file: (Sorted & Unsorted)
+void physical_deletion_from_linked_file(FILE *ms, FILE *f, char name[20], int id);                                      // Delete
+void logical_deletion_from_linked_file(FILE *ms, FILE *f, char name[20], int id);                                       // record from linked file: (Physical & Logical)
 
 // Operations for Contiguous
 /* Memory */
 void Initialize_Disk_Co(FILE *ms);
 void update_Allocation_Table_co(FILE *ms,int bloc_adress , int b);
+
 /*File*/
-void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int nbEtudiant, int internalmode);                        // Option 1: Create contiguous file
-void Load_unsorted_students_into_data_file(FILE *f, char fileName[20], int startBloc, int nbEtudiant, int taille);    // Option 2:
-void Load_sorted_students_into_data_file(FILE *f, char fileName[20], int startBloc, int nbEtudiant, int taille);      // Load
-void chargerFichier_co(FILE *ms, FILE *f, char fileName[20]);                                                         // contiguous file
-void Display_fichier_co(FILE *MS, char filename[20]);                                                                 // Option 3: Display contiguous file
-void Renommer_co(FILE *ms, char *oldName, char *newName);                                                             // Option 4: Rename contiguous file
-void supprime_fichier_contigue(FILE *ms, char nom[20]);                                                               // Option 5: Delete contiguous file
-void insertion_co(FILE *MS, char file_name[30]);                                                                      // Option 6: Add to contiguous file (Sorted & Unsorted)
-void defragmentation_co(FILE *ms, FILE *f, char *nom);                                                                // Option 7: Defragment a contiguous file
-void Recherche_co(FILE *MS, int id_Tetudiant, char filename[20], int *num_block, int *deplacement);                   // Option 8: Search in contiguous file (Sorted & Unsorted)
-void Suppression_Enregistrement_logique_co(FILE *MS, int ID_SUPP_Tetudiant, char file_name[30]);                      // Option 9:
-void Suppression_Enregistrement_physic_co(FILE *MS, int ID_SUPP_Tetudiant, char file_name[30]);                       // Delete record from contiguous file
+void creer_un_fichier_co(FILE *ms, FILE *f, char FDnom[20], int nbEtudiant, int internalmode);                          // Create contiguous file
+void Load_unsorted_students_into_data_file(FILE *f, char fileName[20], int startBloc, int nbEtudiant, int taille);      // Load
+void Load_sorted_students_into_data_file(FILE *f, char fileName[20], int startBloc, int nbEtudiant, int taille);        // contiguous
+void chargerFichier_co(FILE *ms, FILE *f, char fileName[20]);                                                           // file
+void Display_fichier_co(FILE *MS, char filename[20]);                                                                   // Display contiguous file
+void Renommer_co(FILE *ms, char *oldName, char *newName);                                                               // Rename contiguous file
+void supprime_fichier_contigue(FILE *ms, char nom[20]);                                                                 // Delete contiguous file
+void insertion_co(FILE *MS, char file_name[30]);                                                                        // Add to contiguous file: (Sorted & Unsorted)
+void defragmentation_co(FILE *ms, FILE *f, char *nom);                                                                  // Defragment a contiguous file
+void Recherche_co(FILE *MS, int id_Tetudiant, char filename[20], int *num_block, int *deplacement);                     // Search in contiguous file: (Sorted & Unsorted)
+void Suppression_Enregistrement_logique_co(FILE *MS, int ID_SUPP_Tetudiant, char file_name[30]);                        // Delete
+void Suppression_Enregistrement_physic_co(FILE *MS, int ID_SUPP_Tetudiant, char file_name[30]);                         // record from contiguous file: (Physical & Logical)
 void Compact_Disk_Co(FILE *ms);
 
 // Main prototypes functions
@@ -105,32 +106,37 @@ void display_main_menu() {
 
 void display_linked_actions() {
     printf("Choose an action for linked storage:\n");
-    printf("1. Create linked file (Sorted & Unsorted)\n");
-    printf("2. Load linked file\n");
-    printf("3. Display linked file\n");
-    printf("4. Rename linked file\n");
-    printf("5. Delete linked file\n");
-    printf("6. Add to linked list (Sorted & Unsorted)\n");
-    printf("7. Defragment a linked file\n");
-    printf("8. Search in linked file (Sorted & Unsorted)\n");
-    printf("9. Delete record from linked file (Physic & Logic)\n");
-    printf("10. < Return >\n");
+    printf("1. Initialize linked storage\n");
+    printf("2. Empty linked storage\n");
+    printf("3. Create linked file (Sorted & Unsorted)\n");
+    printf("4. Load linked file\n");
+    printf("5. Display linked file\n");
+    printf("6. Rename linked file\n");
+    printf("7. Delete linked file\n");
+    printf("8. Add to linked list (Sorted & Unsorted)\n");
+    printf("9. Defragment a linked file\n");
+    printf("10. Search in linked file (Sorted & Unsorted)\n");
+    printf("11. Delete record from linked file (Physical & Logical)\n");
+    printf("12. < Return >\n");
 }
 
 void display_contiguous_actions() {
     printf("Choose an action for contiguous storage:\n");
-    printf("1. Create contiguous file (Sorted & Unsorted)\n");
-    printf("2. Load contiguous file\n");
-    printf("3. Display contiguous file\n");
-    printf("4. Rename contiguous file\n");
-    printf("5. Delete contiguous file\n");
-    printf("6. Add to contiguous list (Sorted & Unsorted)\n");
-    printf("7. Defragment a contiguous file\n");
-    printf("8. Search in contiguous file (Sorted & Unsorted)\n");
-    printf("9. Delete record from contiguous file (Physic & Logic)\n");
-    printf("10. < Return >\n");
+    printf("1. Initialize contiguous storage\n");
+    printf("2. Empty contiguous storage\n");
+    printf("3. Create contiguous file (Sorted & Unsorted)\n");
+    printf("4. Load contiguous file\n");
+    printf("5. Display contiguous file\n");
+    printf("6. Rename contiguous file\n");
+    printf("7. Delete contiguous file\n");
+    printf("8. Add to contiguous list (Sorted & Unsorted)\n");
+    printf("9. Defragment a contiguous file\n");
+    printf("10. Search in contiguous file (Sorted & Unsorted)\n");
+    printf("11. Delete record from contiguous file (Physical & Logical)\n");
+    printf("12. < Return >\n");
 }
 
+// Main function
 // Main function
 int main() {
     int choice;
@@ -142,23 +148,37 @@ int main() {
 
         switch (choice) {
             case 1: {  // Linked Storage
-                FILE *ms = fopen("linked_storage.dat", "wb+");
-                if (ms == NULL) {
-                    printf("Error opening file.\n");
-                    return 1;
-                }
-                printf("Initializing disk for linked storage...\n");
-                Initialize_Disk_Ch(ms);
-                printf("Disk initialized for linked storage.\n");
-                fclose(ms);
-
                 int linked_action;
                 while (1) {
                     display_linked_actions();
                     scanf("%d", &linked_action);
-                    if (linked_action == 10) break; // < Return >
+                    if (linked_action == 12) break; // < Return >
                     switch (linked_action) {
                         case 1: {
+                            FILE *ms = fopen("linked_storage.dat", "wb+");
+                            if (ms == NULL) {
+                                printf("Error opening file.\n");
+                                break;
+                            }
+                            printf("Initializing disk for linked storage...\n");
+                            Initialize_Disk_Ch(ms);
+                            printf("Disk initialized for linked storage.\n");
+                            fclose(ms);
+                            break;
+                        }
+                        case 2: {
+                            FILE *ms = fopen("linked_storage.dat", "wb+");
+                            if (ms == NULL) {
+                                printf("Error opening file.\n");
+                                break;
+                            }
+                            printf("Emptying linked storage...\n");
+                            empty_MS_Ch(ms);
+                            printf("Linked storage emptied.\n");
+                            fclose(ms);
+                            break;
+                        }
+                        case 3: {
                             FILE *ms = fopen("linked_storage.dat", "rb+");
                             if (ms == NULL) {
                                 printf("Error opening linked storage file.\n");
@@ -208,7 +228,7 @@ int main() {
                             fclose(f);
                             break;
                         }
-                        case 2: {
+                        case 4: {
                             printf("Loading a linked file...\n");
                             FILE *ms = fopen("linked_storage.dat", "rb+");
                             FILE *f = fopen("students.dat", "rb+");
@@ -227,7 +247,7 @@ int main() {
                             fclose(f);
                             break;
                         }
-                        case 3: {
+                        case 5: {
                             printf("Displaying a linked file...\n");
                             FILE *ms = fopen("linked_storage.dat", "rb+");
                             if (ms == NULL) {
@@ -244,7 +264,7 @@ int main() {
                             fclose(ms);
                             break;
                         }
-                        case 4: {
+                        case 6: {
                             printf("Renaming a linked file...\n");
                             FILE *ms = fopen("linked_storage.dat", "rb+");
                             if (ms == NULL) {
@@ -260,12 +280,12 @@ int main() {
                             printf("Enter the new file name: ");
                             scanf("%s", nouveaunom);
 
-                            Renommer_co(ms, nom, nouveaunom);
+                            Rename_File_Ch(ms, nom, nouveaunom);
 
                             fclose(ms);
                             break;
                         }
-                        case 5: {
+                        case 7: {
                             printf("Deleting a linked file...\n");
                             FILE *ms = fopen("linked_storage.dat", "rb+");
                             if (ms == NULL) {
@@ -282,7 +302,7 @@ int main() {
                             fclose(ms);
                             break;
                         }
-                        case 6: {
+                        case 8: {
                             printf("Inserting into a linked file...\n");
                             FILE *ms = fopen("linked_storage.dat", "rb+");
                             if (ms == NULL) {
@@ -321,7 +341,7 @@ int main() {
                             fclose(ms);
                             break;
                         }
-                        case 7: {
+                        case 9: {
                             printf("Defragmenting a linked file...\n");
                             FILE *ms = fopen("linked_storage.dat", "rb+");
                             FILE *f = fopen("students.dat", "rb+");
@@ -331,7 +351,6 @@ int main() {
                             }
 
                             char nom[20];
-                            int id;
                             printf("Enter the file name: ");
                             scanf("%s", nom);
 
@@ -341,7 +360,7 @@ int main() {
                             fclose(f);
                             break;
                         }
-                        case 8: {
+                        case 10: {
                             printf("Searching in a linked file...\n");
                             FILE *ms = fopen("linked_storage.dat", "rb+");
                             if (ms == NULL) {
@@ -367,7 +386,7 @@ int main() {
                             fclose(ms);
                             break;
                         }
-                        case 9: {
+                        case 11: {
                             printf("Deleting a record from a linked file...\n");
                             FILE *ms = fopen("linked_storage.dat", "rb+");
                             FILE *f = fopen("students.dat", "rb+");
@@ -406,23 +425,37 @@ int main() {
                 break;
             }
             case 2: {  // Contiguous Storage
-                FILE *ms = fopen("contiguous_storage.dat", "wb+");
-                if (ms == NULL) {
-                    printf("Error opening file.\n");
-                    return 1;
-                }
-                printf("Initializing disk for contiguous storage...\n");
-                Initialize_Disk_Co(ms);
-                printf("Disk initialized for contiguous storage.\n");
-                fclose(ms);
-
                 int contiguous_action;
                 while (1) {
                     display_contiguous_actions();
                     scanf("%d", &contiguous_action);
-                    if (contiguous_action == 10) break; // < Return >
+                    if (contiguous_action == 12) break; // < Return >
                     switch (contiguous_action) {
                         case 1: {
+                            FILE *ms = fopen("contiguous_storage.dat", "wb+");
+                            if (ms == NULL) {
+                                printf("Error opening file.\n");
+                                break;
+                            }
+                            printf("Initializing disk for contiguous storage...\n");
+                            Initialize_Disk_Co(ms);
+                            printf("Disk initialized for contiguous storage.\n");
+                            fclose(ms);
+                            break;
+                        }
+                        case 2: {
+                            FILE *ms = fopen("contiguous_storage.dat", "wb+");
+                            if (ms == NULL) {
+                                printf("Error opening file.\n");
+                                break;
+                            }
+                            printf("Emptying contiguous storage...\n");
+                            empty_MS_Ch(ms); // Assuming same function can be used for contiguous storage
+                            printf("Contiguous storage emptied.\n");
+                            fclose(ms);
+                            break;
+                        }
+                        case 3: {
                             printf("Creating a contiguous file...\n");
                             FILE *ms = fopen("contiguous_storage.dat", "rb+");
                             if (ms == NULL) {
@@ -473,7 +506,7 @@ int main() {
                             fclose(f);
                             break;
                         }
-                        case 2: {
+                        case 4: {
                             printf("Loading a contiguous file...\n");
                             FILE *ms = fopen("contiguous_storage.dat", "rb+");
                             FILE *f = fopen("students.dat", "rb+");
@@ -492,7 +525,7 @@ int main() {
                             fclose(f);
                             break;
                         }
-                        case 3: {
+                        case 5: {
                             printf("Displaying a contiguous file...\n");
                             FILE *ms = fopen("contiguous_storage.dat", "rb+");
                             if (ms == NULL) {
@@ -509,7 +542,7 @@ int main() {
                             fclose(ms);
                             break;
                         }
-                        case 4: {
+                        case 6: {
                             printf("Renaming a contiguous file...\n");
                             FILE *ms = fopen("contiguous_storage.dat", "rb+");
                             if (ms == NULL) {
@@ -530,7 +563,7 @@ int main() {
                             fclose(ms);
                             break;
                         }
-                        case 5: {
+                        case 7: {
                             printf("Deleting a contiguous file...\n");
                             FILE *ms = fopen("contiguous_storage.dat", "rb+");
                             if (ms == NULL) {
@@ -547,7 +580,7 @@ int main() {
                             fclose(ms);
                             break;
                         }
-                        case 6: {
+                        case 8: {
                             printf("Inserting into a contiguous file...\n");
                             FILE *ms = fopen("contiguous_storage.dat", "rb+");
                             if (ms == NULL) {
@@ -559,12 +592,13 @@ int main() {
                             printf("Enter the file name: ");
                             scanf("%s", nom);
 
+                            // Assuming insertion_co is a function that handles the insertion process
                             insertion_co(ms, nom);
 
                             fclose(ms);
                             break;
                         }
-                        case 7: {
+                        case 9: {
                             printf("Defragmenting a contiguous file...\n");
                             FILE *ms = fopen("contiguous_storage.dat", "rb+");
                             FILE *f = fopen("students.dat", "rb+");
@@ -585,7 +619,7 @@ int main() {
                             fclose(f);
                             break;
                         }
-                        case 8: {
+                        case 10: {
                             printf("Searching in a contiguous file...\n");
                             FILE *ms = fopen("contiguous_storage.dat", "rb+");
                             if (ms == NULL) {
@@ -608,7 +642,7 @@ int main() {
                             fclose(ms);
                             break;
                         }
-                        case 9: {
+                        case 11: {
                             printf("Deleting a record from a contiguous file...\n");
                             FILE *ms = fopen("contiguous_storage.dat", "rb+");
                             FILE *f = fopen("students.dat", "rb+");
@@ -1921,8 +1955,11 @@ void update_Allocation_Table_co(FILE *ms,int bloc_adress , int b){
     fseek(ms,0,SEEK_SET);                                    // Move the file pointer to the beginning of the file
 
     fwrite(Allocation_Table, NbBloc * sizeof(int),1,ms);       // Write the updated allocation table to the file
-
  }
+
+ void empty_MS_Co(FILE *ms) {
+    Initialize_Disk_Co(ms); // Initialize the disk for contiguous storage
+}
 
 // Function to search for a group of free blocks in the allocation table
 void allouer_co(int *start, int tableAllocation[NbBloc], int nbEtudiant) {

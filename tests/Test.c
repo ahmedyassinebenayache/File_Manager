@@ -1456,7 +1456,7 @@ void add_student_to_sorted_linked_file(FILE *ms, char nom[20],Tetudiant x) {
             buffer.ne = size;
         }
 
-        if(buffer.next!=-1) {
+        if(buffer.next!=-1 && j != meta.nbEtudiant ) {
             fseek(ms, -1 * sizeof(BLOC_ch), SEEK_CUR);
             fwrite(&buffer, sizeof(BLOC_ch), 1, ms);
             meta.adresse=buffer.next;

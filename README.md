@@ -75,6 +75,17 @@ The source code and related files for this project can be found in the GitHub re
 - **Block Structures**:
   - `BLOC_ch`, `BLOC_co`, `BLOC_meta`, `BLOC_meta_ch`: Manage blocks of records or metadata.
 
+## Contributors
+
+This project was developed by:
+- BENAYACHE AHMED YASSINE 232331691710
+- HAMIDI AMINE 232331640902
+- SALMA ELTAIB 232331640905
+- YALAOUI MOHAMED ELAMINE 232331717704
+- BEN AZZA MOHAMED ANIS 232331674106
+- ALLICHE YOUCEF ALI 232331698707
+- DOUDOU YANI 232331633907
+
 ## Contact
 
 For questions or feedback, please contact the author at [ahmedyassinebenayache.acc@gmail.com].

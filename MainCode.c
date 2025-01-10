@@ -1331,7 +1331,7 @@ void add_student_to_unsorted_linked_file(FILE *ms, char fileName[20], Tetudiant 
     printf("Debug: Function completed.\n");
 }
 
-void add_student_to_sorted_linked_file(FILE *ms, char nom[20], Tetudiant x) {
+void add_student_to_sorted_linked_file(FILE *ms, char nom[20],Tetudiant x) {
     BLOC_meta bloCmeta;
     FDmeta meta;
     FDmeta final;
@@ -1351,42 +1351,49 @@ void add_student_to_sorted_linked_file(FILE *ms, char nom[20], Tetudiant x) {
             if (strcmp(bloCmeta.t[i].FDnom, nom) == 0) {
                 meta = bloCmeta.t[i];
                 trouv = 1;
-                printf("DEBUG: Metadata found - Address: %d, nbEtudiant: %d, taille: %d\n", meta.adresse, meta.nbEtudiant, meta.taille);
+                printf("DEBUG: Metadata found - Address: %d, nbEtudiant: %d, taille: %d\n", meta.adresse,
+                       meta.nbEtudiant, meta.taille);
                 break;
             }
         }
         cpt++;
-    } while (!trouv && cpt <= 10);
+    } while (trouv == 0 && cpt <= 10);
 
-    if (!trouv) {
-        printf("ERROR: Metadata not found for the file '%s'\n", nom);
+    if (cpt > 10) {
+        perror("ERROR: Disk is full, metadata not found");
         return;
     }
 
     // Move to the starting address of the linked list in the file
-    fseek(ms, NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_meta) + meta.adresse * sizeof(BLOC_ch), SEEK_SET);
-    printf("DEBUG: Moved to linked list address: %d\n", meta.adresse);
+    BLOC_ch buffer;// Temporary buffer to hold a block of students
+    final = meta;
+    int l=0;
 
-    BLOC_ch buffer; // Temporary buffer to hold a block of students
     meta.nbEtudiant++;
     meta.taille = ceil((double) meta.nbEtudiant / FB);
-    final = meta;
 
-    // Debug: Allocating memory for student array
-    printf("DEBUG: Allocating memory for %d students\n", meta.nbEtudiant);
-    int n = meta.nbEtudiant;
-    Tetudiant *A = (Tetudiant *) malloc((n) * sizeof(Tetudiant));
-    if (A == NULL) {
-        printf("ERROR: Failed to allocate memory\n");
+
+    int n = meta.nbEtudiant + 1;  // Ensure this value is correct
+    if (n <= 0) {
+        printf("ERROR: Invalid number of students (%d) in metadata\n", n);
         return;
     }
+    Tetudiant *A = (Tetudiant *) malloc(n * sizeof(Tetudiant));
+    if (A == NULL) {
+        perror("ERROR: Memory allocation failed");
+        printf("Attempted to allocate %lu bytes\n", n * sizeof(Tetudiant));
+        return;
+    }
+    printf("DEBUG: Successfully allocated memory for %d students\n", n);
 
     int j = 0;
     int k = 0;
     printf("DEBUG: Reading blocks to populate student array...\n");
 
     // Read all blocks and copy their data into the temporary array A
-    while (k < meta.taille) {
+    fseek(ms, NbBloc * sizeof(int) + (NbBlocmeta) * sizeof(BLOC_meta) + (meta.adresse) * sizeof(BLOC_ch), SEEK_SET);
+    printf("DEBUG: Moved to linked list address: %d\n", meta.adresse);
+    while (final.taille > k) {
         fread(&buffer, sizeof(BLOC_ch), 1, ms);
         printf("DEBUG: Read block #%d with next = %d, ne = %d\n", k, buffer.next, buffer.ne);
         for (int i = 0; i < buffer.ne; ++i) {
@@ -1395,29 +1402,42 @@ void add_student_to_sorted_linked_file(FILE *ms, char nom[20], Tetudiant x) {
             j++;
         }
 
-        if (buffer.next == -1) break;
-        fseek(ms, NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_meta) + buffer.next * sizeof(BLOC_ch), SEEK_SET);
+        fseek(ms, NbBloc * sizeof(int) + (NbBlocmeta) * sizeof(BLOC_meta) + (buffer.next) * sizeof(BLOC_ch), SEEK_SET);
+
         k++;
     }
 
     // Insert the new student
     printf("DEBUG: Inserting new student with ID: %d\n", x.id);
-    for (i = meta.nbEtudiant - 2; (i >= 0 && A[i].id > x.id); i--) {
-        A[i + 1] = A[i]; // Shift elements to the right
+    int inserted = 0;
+    i = 0;
+
+// Check if the new student should be the first element
+    for (i = meta.nbEtudiant - 1; (i >= 0 && A[i].id > x.id); i--) {
+        A[i + 1] = A[i];  // Shift elements to the right
     }
+    // Insert the value at the found position
     A[i + 1] = x;
+    if (i + 1 >= n) {
+        printf("ERROR: Array index out of bounds\n");
+        free(A);
+        return;
+    }
 
     // Write updated data back into the file blocks
     printf("DEBUG: Writing updated blocks back to the file...\n");
 
     j = 0;
     k = 0;
+    trouv=0;
     int size = meta.nbEtudiant;
-    while (k < meta.taille) {
-        if (meta.adresse != -1) {
-            fseek(ms, NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_meta) + meta.adresse * sizeof(BLOC_ch), SEEK_SET);
-            fread(&buffer, sizeof(BLOC_ch), 1, ms);
-        }
+    int temp = 0;
+    trouv=0;
+
+    while (k < final.taille) {
+        fseek(ms, NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_meta) + meta.adresse * sizeof(BLOC_ch), SEEK_SET);
+        fread(&buffer, sizeof(BLOC_ch), 1, ms);
+
 
         if (size > FB) {
             for (int i = 0; i < FB; ++i) {
@@ -1425,8 +1445,8 @@ void add_student_to_sorted_linked_file(FILE *ms, char nom[20], Tetudiant x) {
                 printf("DEBUG: Writing student ID: %d to block %d at index %d\n", A[j].id, k, i);
                 j++;
             }
-            buffer.ne = FB;
             size -= FB;
+            buffer.ne = FB;
         } else {
             for (int i = 0; i < size; ++i) {
                 buffer.t[i] = A[j];
@@ -1436,68 +1456,59 @@ void add_student_to_sorted_linked_file(FILE *ms, char nom[20], Tetudiant x) {
             buffer.ne = size;
         }
 
-        fseek(ms, -1 * sizeof(BLOC_ch), SEEK_CUR);
-        fwrite(&buffer, sizeof(BLOC_ch), 1, ms);
-        meta.adresse = buffer.next;
-        k++;
-    }
-
-    if (j != meta.nbEtudiant) {
-        if (buffer.ne == FB) {
-            int newBlock = allouer(ms); // Allocate a new block in the file
-            if (newBlock != -1) {
-                printf("DEBUG: Allocating a new block at address %d\n", newBlock);
-                buffer.next = newBlock; // Link the new block to the current chain
-                update_Allocation_Table(ms, buffer.next, 0);
-                int l = 0;
-                while (j < meta.nbEtudiant) {
-                    buffer.t[l] = A[j];
-                    printf("DEBUG: Adding student ID: %d to newly allocated block at index %d\n", A[j].id, l);
-                    j++;
-                    l++;
-                }
-                buffer.ne = l; // Update the number of students in the new block
-                fseek(ms, NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_meta) + buffer.next * sizeof(BLOC_ch), SEEK_SET);
-                fwrite(&buffer, sizeof(BLOC_ch), 1, ms);
-            } else {
-                printf("ERROR: Disk is full, allocation failed\n");
-                free(A);
-                return;
-            }
-        } else {
-            buffer.ne++;
-            buffer.t[buffer.ne - 1] = A[j];
-            printf("DEBUG: Writing student ID: %d to block %d at index %d\n", A[j].id, k - 1, buffer.ne - 1);
+        if(buffer.next!=-1) {
             fseek(ms, -1 * sizeof(BLOC_ch), SEEK_CUR);
             fwrite(&buffer, sizeof(BLOC_ch), 1, ms);
+            meta.adresse=buffer.next;
+        }
+
+        k++;
+        printf("DEBUG: Allocated new block: %d at iteration %d\n", cpt, k);
+        printf("DEBUG: Current buffer.next = %d\n", buffer.next);
+        printf("DEBUG: Updated meta.adresse = %d\n", meta.adresse);
+    }
+    if(j!=meta.nbEtudiant){
+        cpt= allouer(ms);
+        if(cpt!=-1){
+            buffer.next=cpt;
+            fseek(ms, NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_meta) + meta.adresse * sizeof(BLOC_ch), SEEK_SET);
+            fwrite(&buffer, sizeof(BLOC_ch), 1, ms);
+            buffer.t[0]=A[j];
+            buffer.ne=1;
+            buffer.next=-1;
+            fseek(ms, NbBloc * sizeof(int) + NbBlocmeta * sizeof(BLOC_meta) + cpt * sizeof(BLOC_ch), SEEK_SET);
+            fwrite(&buffer, sizeof(BLOC_ch), 1, ms);
+            update_Allocation_Table(ms,cpt,1);
+        }else{
+            perror("DISK IS FULL");
         }
     }
-
-    trouv = 0;
-    cpt = 0;
-    fseek(ms, NbBloc * sizeof(int), SEEK_SET);
+    trouv=0;
+    cpt=0;
+    final.nbEtudiant++;
+    final.taille=meta.taille;
+    fseek(ms,NbBloc*sizeof(int),SEEK_SET);
     while (!trouv && cpt <= 10) {
         fread(&bloCmeta, sizeof(BLOC_meta), 1, ms);
-        printf("DEBUG: Reading block meta #%d\n", cpt + 1);
+        printf("Debug: Reading block meta #%d\n", cpt + 1);
         for (int i = 0; i < bloCmeta.ne; i++) {
-            printf("DEBUG: Comparing %s with %s\n", bloCmeta.t[i].FDnom, nom);
+            printf("Debug: Comparing %s with %s\n", bloCmeta.t[i].FDnom, nom);
             if (strcmp(bloCmeta.t[i].FDnom, nom) == 0) {
-                bloCmeta.t[i] = final;  // Copy matching metadata
+                bloCmeta.t[i]=final;  // Copy matching metadata
                 trouv = 1;
-                fseek(ms, -1 * sizeof(BLOC_meta), SEEK_CUR);
-                fwrite(&bloCmeta, sizeof(BLOC_meta), 1, ms);
-                printf("DEBUG: Found matching metadata! Address: %d, Taille: %d\n", final.adresse, final.taille);
+                fseek(ms,-1* sizeof(BLOC_meta),SEEK_CUR);
+                fwrite(&bloCmeta, sizeof(BLOC_meta),1,ms);
+                printf("Debug: Found matching metadata! Address: %d, Taille: %d\n", final.adresse, final.taille);
+                printf("updating the Metadata ");
             }
         }
         cpt++;
     }
-
-    if (!trouv) {
-        printf("ERROR: Failed to update the metadata\n");
+    if(!trouv){
+        perror("failed to update the metadata");
     }
-
-    free(A);
     printf("DEBUG: Insertion completed successfully\n");
+
 }
 
 void defragmentation_fichier_chainee(FILE *ms, FILE *f, char nom[20]) {
